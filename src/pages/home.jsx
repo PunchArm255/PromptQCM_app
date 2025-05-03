@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useAnimation } from 'framer-motion';
+import { useOutletContext } from 'react-router-dom';
 import '../styles/global.css';
 
 // Components
@@ -9,7 +10,8 @@ import ProgressSection from '../components/ProgressSection';
 import ReportCard from '../components/ReportCard';
 import RecentsCard from '../components/RecentsCard';
 
-export const Home = ({ layoutUser, layoutGreeting }) => {
+export const Home = () => {
+    const { user, greeting } = useOutletContext();
     const [searchQuery, setSearchQuery] = useState('');
 
     const handleSearch = (query) => {
@@ -54,7 +56,7 @@ export const Home = ({ layoutUser, layoutGreeting }) => {
     const reportData = [
         { title: 'Technologie du Web', hours: 18 },
         { title: 'C++', hours: 10 },
-        { title: 'Java', hours: 2 },
+        { title: 'Java', hours: 12 },
     ];
 
     // Mock data for recent documents
@@ -85,8 +87,8 @@ export const Home = ({ layoutUser, layoutGreeting }) => {
         >
             {/* Header */}
             <PageHeader
-                greeting={layoutGreeting || 'Welcome'}
-                userName={layoutUser?.name?.split(' ')[0] || 'User'}
+                greeting={greeting || 'Welcome'}
+                userName={user?.name?.split(' ')[0] || 'User'}
                 onSearch={handleSearch}
             />
 

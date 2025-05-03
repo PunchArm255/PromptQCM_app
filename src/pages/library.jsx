@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useOutletContext } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import DocumentCard from '../components/DocumentCard';
-import SearchBar from '../components/SearchBar';
 
 export const Library = () => {
+    const { user } = useOutletContext();
     const [searchQuery, setSearchQuery] = useState('');
 
     const handleSearch = (query) => {
@@ -39,7 +40,7 @@ export const Library = () => {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="px-8 py-8"
+            className="px-4 sm:px-6 md:px-8 py-6 md:py-8"
         >
             {/* Header */}
             <PageHeader
@@ -49,7 +50,7 @@ export const Library = () => {
             />
 
             {/* Library Content */}
-            <div className="bg-[#F5F6FF] rounded-2xl p-8 shadow-[0_10px_30px_rgba(0,0,0,0.03)]">
+            <div className="bg-[#F5F6FF] rounded-2xl p-4 sm:p-6 md:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.03)]">
                 <div className="mb-8">
                     <h2 className="text-xl font-bold text-[#252525] mb-4">All Documents</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -64,9 +65,9 @@ export const Library = () => {
                     <motion.div
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.99 }}
-                        className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:bg-[#F6F8FC] transition-colors"
+                        className="border-2 border-dashed border-gray-300 rounded-xl p-4 sm:p-6 md:p-8 text-center cursor-pointer hover:bg-[#F6F8FC] transition-colors"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                         </svg>
                         <p className="text-gray-600">Drag and drop files here, or click to browse</p>

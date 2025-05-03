@@ -2,6 +2,11 @@ import { motion } from 'framer-motion';
 import SearchBar from './SearchBar';
 
 const PageHeader = ({ greeting, userName, onSearch, showExclamation = true }) => {
+    // Determine the text to show based on props
+    const headerText = userName && showExclamation
+        ? `${greeting}, ${userName}!`
+        : greeting;
+
     return (
         <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -15,20 +20,17 @@ const PageHeader = ({ greeting, userName, onSearch, showExclamation = true }) =>
                 transition={{ duration: 0.5 }}
                 className="text-2xl md:text-3xl font-medium text-[#252525] mb-4 md:mb-0 hidden md:block"
             >
-                {userName && showExclamation ?
-                    `${greeting}, ${userName}!` :
-                    greeting
-                }
+                {headerText}
             </motion.h1>
 
-            {/* For mobile only - show just the greeting text */}
+            {/* For mobile only - show the same greeting as desktop */}
             <motion.h2
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.5 }}
                 className="text-xl font-medium text-[#252525] mb-4 block md:hidden"
             >
-                Welcome to your dashboard
+                {headerText}
             </motion.h2>
 
             <SearchBar onSearch={onSearch} />

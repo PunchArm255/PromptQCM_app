@@ -45,7 +45,7 @@ const MobileSidebar = ({ user, activeNavItem, toggleMobileMenu, handleLogout }) 
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-20 bg-black/20 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm"
             onClick={toggleMobileMenu}
         >
             <motion.div
@@ -54,7 +54,7 @@ const MobileSidebar = ({ user, activeNavItem, toggleMobileMenu, handleLogout }) 
                 animate={{ x: 0 }}
                 exit={{ x: -300 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="w-64 h-full bg-[#F5F6FF] rounded-r-3xl shadow-lg flex flex-col items-center py-8 px-4"
+                className="w-64 h-full bg-[#F5F6FF] shadow-lg flex flex-col items-center py-8 px-4 absolute top-0 left-0"
             >
                 {/* Logo */}
                 <motion.div

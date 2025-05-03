@@ -1,7 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
 import { account } from './lib/appwrite';
 import { useState, useEffect } from 'react';
-import { AnimatePresence } from 'framer-motion';
 
 // Pages
 import { Welcome } from './pages/welcome';
@@ -16,66 +15,31 @@ import { Settings } from './pages/settings';
 // Layout component
 import Layout from './components/Layout';
 
-// Animation wrapper
-const AnimatedRoutes = () => {
-  const location = useLocation();
-
+export default function App() {
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
+    <BrowserRouter>
+      <Routes>
         {/* Public routes */}
         <Route path="/" element={<Welcome />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
 
-        {/* Protected routes with Layout */}
-        <Route path="/home" element={
+        {/* Protected routes with Layout - using a single Layout instance for all routes */}
+        <Route element={
           <ProtectedRoute>
-            <Layout>
-              <Home />
-            </Layout>
+            <Layout />
           </ProtectedRoute>
-        } />
-        <Route path="/library" element={
-          <ProtectedRoute>
-            <Layout>
-              <Library />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="/modules" element={
-          <ProtectedRoute>
-            <Layout>
-              <Modules />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="/reports" element={
-          <ProtectedRoute>
-            <Layout>
-              <Reports />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="/settings" element={
-          <ProtectedRoute>
-            <Layout>
-              <Settings />
-            </Layout>
-          </ProtectedRoute>
-        } />
+        }>
+          <Route path="/home" element={<Home />} />
+          <Route path="/library" element={<Library />} />
+          <Route path="/modules" element={<Modules />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
 
         {/* Redirect any unknown routes to home */}
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
-    </AnimatePresence>
-  );
-};
-
-export default function App() {
-  return (
-    <BrowserRouter>
-      <AnimatedRoutes />
     </BrowserRouter>
   );
 }

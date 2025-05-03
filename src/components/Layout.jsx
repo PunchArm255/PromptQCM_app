@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useNavigate, Link, useLocation, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { account } from '../lib/appwrite';
 import Sidebar from './Sidebar';
 import MobileSidebar from './MobileSidebar';
-import React from 'react';
+import Logo from '../assets/icons/logo.svg';
 
-const Layout = ({ children }) => {
+const Layout = () => {
     const [user, setUser] = useState(null);
     const [error, setError] = useState('');
     const [greeting, setGreeting] = useState('');
@@ -60,17 +60,6 @@ const Layout = ({ children }) => {
         return 'Dashboard';
     };
 
-    // Clone the child element and pass additional props
-    const childrenWithProps = React.Children.map(children, child => {
-        if (React.isValidElement(child)) {
-            return React.cloneElement(child, {
-                layoutUser: user,
-                layoutGreeting: greeting
-            });
-        }
-        return child;
-    });
-
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -85,7 +74,7 @@ const Layout = ({ children }) => {
                 handleLogout={handleLogout}
             />
 
-            {/* Mobile Sidebar */}
+            {/* Mobile Sidebar - positioned to cover the header */}
             <AnimatePresence>
                 {isMobileMenuOpen && (
                     <MobileSidebar
@@ -104,43 +93,37 @@ const Layout = ({ children }) => {
                 transition={{ duration: 0.4 }}
                 className="flex-1 overflow-y-auto relative"
             >
-                {/* Mobile Header with Toggle Button - Floating Card Style */}
+                {/* Mobile Header with centered logo */}
                 <motion.div
                     initial={{ y: -10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="lg:hidden fixed top-6 left-0 right-0 z-30 mx-4 flex items-center justify-between bg-[#F5F6FF] rounded-xl shadow-md px-4 py-3"
+                    className="lg:hidden fixed top-6 left-0 right-0 z-20 mx-4 flex items-center justify-between bg-[#F5F6FF] rounded-xl shadow-md px-4 py-3"
                 >
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={toggleMobileMenu}
-                        className="p-2 rounded-full bg-[#F5F6FF] hover:bg-[#EAEFFB] transition-colors"
+                        className="p-2 rounded-full bg-[#F5F6FF] hover:bg-[#EAEFFB] transition-colors z-30"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
                         </svg>
                     </motion.button>
 
-                    <div className="flex items-center">
-                        {user && (
-                            <div className="flex items-center">
-                                <div className="w-8 h-8 rounded-full overflow-hidden gradient-border mr-2">
-                                    <img
-                                        src={`https://ui-avatars.com/api/?name=${user.name}&background=random`}
-                                        alt={user.name}
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-                                <span className="text-sm font-medium">{user.name?.split(' ')[0]}</span>
-                            </div>
-                        )}
+                    {/* Centered Logo */}
+                    <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
+                        <img src={Logo} alt="PromptQCM" className="h-8 w-auto" />
                     </div>
+
+                    {/* Invisible element to balance the header */}
+                    <div className="w-10 h-10 opacity-0"></div>
                 </motion.div>
 
                 {/* Add padding at the top on mobile to account for the floating header */}
                 <div className="lg:pt-0 pt-20">
-                    {childrenWithProps}
+                    {/* Dynamic content with Outlet */}
+                    <Outlet context={{ user, greeting }} />
                 </div>
             </motion.div>
 

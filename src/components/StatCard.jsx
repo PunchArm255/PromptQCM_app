@@ -5,6 +5,26 @@ const StatCard = ({ item, index, maxHours }) => {
     const MAX_HOURS = 20;
     const percentage = Math.min((item.hours / MAX_HOURS), 1);
 
+    // Determine gradient for the circle based on index
+    const getGradientId = (idx) => {
+        switch (idx) {
+            case 0: return 'url(#gradient1)'; // Technologie du Web
+            case 1: return 'url(#gradient2)'; // C++
+            case 2: return 'url(#gradient3)'; // Java
+            default: return 'url(#gradient1)';
+        }
+    };
+
+    // Determine gradient for the text based on index
+    const getTextGradient = (idx) => {
+        switch (idx) {
+            case 0: return 'linear-gradient(to right, #00CAC3, #AF42F6)';
+            case 1: return 'linear-gradient(to right, #3B82F6, #8B5CF6)';
+            case 2: return 'linear-gradient(to right, #F472B6, #EC4899)';
+            default: return 'linear-gradient(to right, #00CAC3, #AF42F6)';
+        }
+    };
+
     return (
         <motion.div
             initial={{ scale: 0, opacity: 0 }}
@@ -12,7 +32,7 @@ const StatCard = ({ item, index, maxHours }) => {
             transition={{ delay: 0.3 + (index * 0.2), type: "spring", stiffness: 300, damping: 25 }}
             className="flex flex-col items-center"
         >
-            <div className="relative w-36 h-36 mb-3">
+            <div className="relative w-28 sm:w-32 md:w-36 h-28 sm:h-32 md:h-36 mb-3">
                 <svg className="w-full h-full" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="40" fill="none" stroke="#E6E6E6" strokeWidth="10" />
                     <motion.path
@@ -20,7 +40,7 @@ const StatCard = ({ item, index, maxHours }) => {
                             },${50 - 40 * Math.cos(2 * Math.PI * percentage)
                             }`}
                         fill="none"
-                        stroke={index === 0 ? 'url(#gradient1)' : index === 1 ? 'url(#gradient2)' : '#9CA3AF'}
+                        stroke={getGradientId(index)}
                         strokeWidth="10"
                         strokeLinecap="round"
                         initial={{ pathLength: 0 }}
@@ -36,9 +56,9 @@ const StatCard = ({ item, index, maxHours }) => {
                             <stop offset="0%" stopColor="#3B82F6" />
                             <stop offset="100%" stopColor="#8B5CF6" />
                         </linearGradient>
-                        <linearGradient id="textGradient1" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stopColor="#00CAC3" />
-                            <stop offset="100%" stopColor="#AF42F6" />
+                        <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#F472B6" />
+                            <stop offset="100%" stopColor="#EC4899" />
                         </linearGradient>
                     </defs>
                 </svg>
@@ -49,11 +69,9 @@ const StatCard = ({ item, index, maxHours }) => {
                     className="absolute inset-0 flex items-center justify-center"
                 >
                     <span
-                        className="text-3xl font-bold"
+                        className="text-2xl sm:text-3xl font-bold"
                         style={{
-                            background: index === 0 ? 'linear-gradient(to right, #00CAC3, #AF42F6)' :
-                                index === 1 ? 'linear-gradient(to right, #3B82F6, #8B5CF6)' :
-                                    '#9CA3AF',
+                            background: getTextGradient(index),
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
                             backgroundClip: 'text'
@@ -63,10 +81,10 @@ const StatCard = ({ item, index, maxHours }) => {
                     </span>
                 </motion.div>
             </div>
-            <p className="text-center text-base font-medium text-[#252525]">{item.title}</p>
+            <p className="text-center text-sm sm:text-base font-medium text-[#252525]">{item.title}</p>
             <p className="text-center text-xs text-gray-400">of 20h</p>
         </motion.div>
     );
 };
 
-export default StatCard; 
+export default StatCard;
