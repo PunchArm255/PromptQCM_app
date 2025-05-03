@@ -2,7 +2,7 @@
 
 **PromptQCM** is a smart web platform designed to help **professors** generate high-quality multiple-choice questions (QCMs) using AI, and allow **students** to practice and track their progress effortlessly.
 
-![banir](https://github.com/user-attachments/assets/1608a05d-a92c-4578-9788-9c03935dfe27)
+![banir](https://github.com/user-attachments/assets/8074a650-2996-471f-a375-653095052613)
 
 ---
 
