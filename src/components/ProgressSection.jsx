@@ -1,10 +1,26 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import ProgressModule from './ProgressModule';
 
 const ProgressSection = ({ modules }) => {
     const scrollRef = useRef(null);
+    const [activeSlide, setActiveSlide] = useState(0);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        // Check if viewport is mobile
+        const checkIfMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+
+        checkIfMobile();
+        window.addEventListener('resize', checkIfMobile);
+
+        return () => {
+            window.removeEventListener('resize', checkIfMobile);
+        };
+    }, []);
 
     const itemVariants = {
         hidden: { y: 20, opacity: 0 },
@@ -21,6 +37,33 @@ const ProgressSection = ({ modules }) => {
             const { current } = scrollRef;
             const scrollAmount = direction === 'left' ? -300 : 300;
             current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+
+            // Update active slide for indicators on mobile
+            if (isMobile) {
+                const newSlide = direction === 'left'
+                    ? Math.max(0, activeSlide - 1)
+                    : Math.min(modules.length - 1, activeSlide + 1);
+                setActiveSlide(newSlide);
+
+                // Scroll to the specific card
+                const cardWidth = 220 + 16; // card width + gap
+                current.scrollTo({
+                    left: newSlide * cardWidth,
+                    behavior: 'smooth'
+                });
+            }
+        }
+    };
+
+    // Go to specific slide (for dot indicators)
+    const goToSlide = (index) => {
+        if (scrollRef.current) {
+            setActiveSlide(index);
+            const cardWidth = 220 + 16; // card width + gap
+            scrollRef.current.scrollTo({
+                left: index * cardWidth,
+                behavior: 'smooth'
+            });
         }
     };
 
@@ -60,12 +103,28 @@ const ProgressSection = ({ modules }) => {
             </div>
             <div
                 ref={scrollRef}
-                className="flex gap-6 overflow-x-auto hide-scrollbar pb-4 py-2"
+                className="flex gap-4 overflow-x-auto hide-scrollbar pb-4 py-2 snap-x"
             >
                 {modules.map((module, index) => (
-                    <ProgressModule key={module.id} module={module} index={index} />
+                    <div key={module.id} className="snap-start">
+                        <ProgressModule module={module} index={index} />
+                    </div>
                 ))}
             </div>
+
+            {/* Mobile Carousel Indicators */}
+            {isMobile && modules.length > 1 && (
+                <div className="flex justify-center gap-2 mt-1">
+                    {modules.map((_, index) => (
+                        <button
+                            key={index}
+                            onClick={() => goToSlide(index)}
+                            className={`h-2 rounded-full transition-all ${activeSlide === index ? 'w-6 bg-[#AF42F6]' : 'w-2 bg-gray-300'
+                                }`}
+                        />
+                    ))}
+                </div>
+            )}
         </motion.div>
     );
 };

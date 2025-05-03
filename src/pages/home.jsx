@@ -81,7 +81,7 @@ export const Home = ({ layoutUser, layoutGreeting }) => {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="px-8 py-8"
+            className="px-4 sm:px-6 md:px-8 py-6 md:py-8"
         >
             {/* Header */}
             <PageHeader
@@ -98,7 +98,7 @@ export const Home = ({ layoutUser, layoutGreeting }) => {
 
             {/* Report and Recents Sections */}
             <motion.div
-                className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+                className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8"
             >
                 {/* Report Section */}
                 <ReportCard reportData={reportData} />

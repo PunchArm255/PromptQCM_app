@@ -17,7 +17,7 @@ const ActionButton = ({
             }}
             whileTap={{ scale: 0.98 }}
             onClick={onClick}
-            className="w-full flex items-center justify-center gap-3 px-0 py-6 bg-[#F5F6FF] rounded-xl shadow hover:shadow-lg transition-all duration-300 text-2xl font-bold text-[#252525]"
+            className="w-full flex items-center justify-center gap-3 px-3 sm:px-0 py-4 sm:py-6 bg-[#F5F6FF] rounded-xl shadow hover:shadow-lg transition-all duration-300 text-base sm:text-2xl font-bold text-[#252525]"
             style={{
                 backgroundImage: 'linear-gradient(#F5F6FF, #F5F6FF), linear-gradient(to right, #00CAC3, #AF42F6)',
                 backgroundOrigin: 'border-box',
@@ -28,7 +28,7 @@ const ActionButton = ({
                 borderColor: 'transparent'
             }}
         >
-            <span className="flex items-center justify-center w-10 h-10 rounded-full bg-[#F6F8FC] mr-2"
+            <span className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#F6F8FC] mr-1 sm:mr-2"
                 style={{
                     backgroundImage: 'linear-gradient(#F6F8FC, #F6F8FC), linear-gradient(to right, #00CAC3, #AF42F6)',
                     backgroundOrigin: 'border-box',

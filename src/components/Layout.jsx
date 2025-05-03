@@ -78,25 +78,6 @@ const Layout = ({ children }) => {
             transition={{ duration: 0.4 }}
             className="flex h-screen bg-[#EAEFFB] overflow-hidden font-gotham"
         >
-            {/* Mobile Menu Toggle */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="lg:hidden fixed top-4 left-4 z-30"
-            >
-                <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={toggleMobileMenu}
-                    className="p-2 rounded-full bg-[#F5F6FF] shadow-md"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
-                    </svg>
-                </motion.button>
-            </motion.div>
-
             {/* Desktop Sidebar */}
             <Sidebar
                 user={user}
@@ -121,9 +102,46 @@ const Layout = ({ children }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4 }}
-                className="flex-1 overflow-y-auto"
+                className="flex-1 overflow-y-auto relative"
             >
-                {childrenWithProps}
+                {/* Mobile Header with Toggle Button - Floating Card Style */}
+                <motion.div
+                    initial={{ y: -10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="lg:hidden fixed top-6 left-0 right-0 z-30 mx-4 flex items-center justify-between bg-[#F5F6FF] rounded-xl shadow-md px-4 py-3"
+                >
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={toggleMobileMenu}
+                        className="p-2 rounded-full bg-[#F5F6FF] hover:bg-[#EAEFFB] transition-colors"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+                        </svg>
+                    </motion.button>
+
+                    <div className="flex items-center">
+                        {user && (
+                            <div className="flex items-center">
+                                <div className="w-8 h-8 rounded-full overflow-hidden gradient-border mr-2">
+                                    <img
+                                        src={`https://ui-avatars.com/api/?name=${user.name}&background=random`}
+                                        alt={user.name}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                                <span className="text-sm font-medium">{user.name?.split(' ')[0]}</span>
+                            </div>
+                        )}
+                    </div>
+                </motion.div>
+
+                {/* Add padding at the top on mobile to account for the floating header */}
+                <div className="lg:pt-0 pt-20">
+                    {childrenWithProps}
+                </div>
             </motion.div>
 
             {/* Custom styles */}
@@ -148,6 +166,13 @@ const Layout = ({ children }) => {
           100% {
             filter: brightness(1);
           }
+        }
+        
+        .gradient-border {
+          background-image: linear-gradient(#F6F8FC, #F6F8FC), linear-gradient(to right, #00CAC3, #AF42F6);
+          background-origin: border-box;
+          background-clip: padding-box, border-box;
+          border: 2px solid transparent;
         }
       `}</style>
         </motion.div>

@@ -24,7 +24,7 @@ const SearchBar = ({ onSearch }) => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search for chi haja..."
-                    className="w-full pl-10 pr-4 py-2 rounded-full border border-[#E0E7EF] bg-[#F5F6FF] focus:outline-none focus:ring-2 focus:ring-transparent focus:border-transparent focus:bg-white focus:shadow-md peer text-base"
+                    className="w-full pl-10 pr-4 py-2 rounded-full border border-[#E0E7EF] bg-[#F5F6FF] focus:outline-none focus:ring-2 focus:ring-transparent focus:border-transparent focus:bg-white focus:shadow-md peer text-sm md:text-base"
                     style={{
                         backgroundImage: 'linear-gradient(white, white), linear-gradient(to right, #00CAC3, #AF42F6)',
                         backgroundOrigin: 'border-box',
@@ -41,7 +41,7 @@ const SearchBar = ({ onSearch }) => {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 type="submit"
-                className="ml-2 px-5 py-2 rounded-full shadow-sm text-[#252525] font-semibold hover:bg-[#F6F8FC] transition-colors duration-300 relative"
+                className="hidden md:block ml-2 px-5 py-2 rounded-full shadow-sm text-[#252525] font-semibold hover:bg-[#F6F8FC] transition-colors duration-300 relative"
                 style={{
                     backgroundImage: 'linear-gradient(#F5F6FF, #F5F6FF), linear-gradient(to right, #00CAC3, #AF42F6)',
                     backgroundOrigin: 'border-box',

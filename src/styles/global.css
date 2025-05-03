@@ -2,9 +2,17 @@
 
 @font-face {
     font-family: 'Gotham';
-    src: url('/fonts/Gotham-Bold.otf') format('opentype'),
-        url('/fonts/Gotham-Book.otf') format('opentype'),
-        url('/fonts/Gotham-Medium.otf') format('opentype');
+    src: url('/fonts/gotham-bold-webfont.woff2') format('woff2'),
+        url('/fonts/gotham-bold-webfont.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Gotham';
+    src: url('/fonts/gotham-medium-webfont.woff2') format('woff2'),
+        url('/fonts/gotham-medium-webfont.woff') format('woff');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -12,6 +20,16 @@
 
 :root {
     --letter-spacing: -0.04em;
+}
+
+/* Apply Gotham to all elements by default */
+html,
+body {
+    font-family: 'Gotham', 'ui-sans-serif', 'system-ui', 'sans-serif';
+    letter-spacing: var(--letter-spacing);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
 .font-gotham {
