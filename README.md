@@ -1,12 +1,35 @@
-# React + Vite
+# 📚 PromptQCM – AI-Powered QCM Generator & Practice Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**PromptQCM** is a smart web platform designed to help **professors** generate high-quality multiple-choice questions (QCMs) using AI, and allow **students** to practice and track their progress effortlessly.
 
-Currently, two official plugins are available:
+![banir](https://github.com/user-attachments/assets/1608a05d-a92c-4578-9788-9c03935dfe27)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🚀 Features
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 👨‍🏫 For Professors
+- 📄 Upload documents and generate QCMs with AI
+- ⚙️ Customize difficulty, topic, and number of questions
+- ✍️ Edit and refine generated questions
+- 📤 Export to PDF or LMS (Moodle-compatible)
+- 🧠 Save templates and reuse them
+
+### 👨‍🎓 For Students
+- 🧪 Practice QCMs by subject or difficulty
+- 📊 Track accuracy, progress, and time spent
+- 🧠 Get AI-recommended quizzes based on performance
+
+---
+
+## 🧩 Tech Stack
+
+| Layer         | Tech                                 |
+|--------------|--------------------------------------|
+| Frontend     | React.js, TailwindCSS, Material UI   |
+| Mobile       | React Native (Expo) *(planned)*      |
+| Backend      | Appwrite (NoSQL + Auth)              |
+| AI Module    | Python (Flask) + spaCy, T5, Word2Vec |
+| Charts & UI  | Chart.js, modern UI components       |
+
+---
