@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <style>
+      .cls-1 {
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 16px;
+      }
+
+      .cls-1, .cls-2 {
+        fill: none;
+      }
+
+      .cls-1, .cls-3 {
+        stroke: #cbd1ff;
+      }
+
+      .cls-3 {
+        fill: #cbd1ff;
+        isolation: isolate;
+        opacity: .2;
+        stroke-miterlimit: 10;
+      }
+    </style>
+  </defs>
+  <rect class="cls-2" width="256" height="256"/>
+  <path class="cls-3" d="m128,32c-53.02,0-96,42.97-96.01,95.99,0,27.23,11.56,53.18,31.81,71.39h0c12.28-24.17,37.09-39.38,64.2-39.38-22.09,0-40-17.91-40-40s17.91-40,40-40,40,17.91,40,40-17.91,40-40,40c27.1,0,51.92,15.21,64.2,39.37,39.42-35.46,42.62-96.16,7.16-135.58-18.2-20.24-44.14-31.79-71.36-31.79Z"/>
+  <path class="cls-1" d="m63.8,199.37c18-35.46,61.34-49.61,96.79-31.61,13.62,6.92,24.69,17.98,31.61,31.61"/>
+  <circle class="cls-1" cx="128" cy="128" r="96"/>
+  <circle class="cls-1" cx="128" cy="120" r="40"/>
+</svg>
