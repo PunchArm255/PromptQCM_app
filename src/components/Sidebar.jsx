@@ -88,7 +88,7 @@ const Sidebar = ({ user, activeNavItem, handleLogout }) => {
                 transition={{ delay: 0.6, duration: 0.5 }}
                 className="mt-8 bg-[#F6F8FC] rounded-lg p-3 w-full flex items-center"
             >
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200">
+                <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-200">
                     {user?.profileImage ? (
                         <img src={user.profileImage} alt={user?.name || 'User'} className="w-full h-full object-cover" />
                     ) : (
@@ -96,8 +96,8 @@ const Sidebar = ({ user, activeNavItem, handleLogout }) => {
                     )}
                 </div>
                 <div className="ml-3">
-                    <p className="font-semibold text-[#252525] text-base">{user?.name || 'User'}</p>
-                    <p className="text-xs text-gray-400">Etudiante</p>
+                    <p className="font-semibold text-[#252525] text-s">{user?.name || 'User'}</p>
+                    <p className="text-xs text-gray-400">Student</p>
                 </div>
             </motion.div>
 
