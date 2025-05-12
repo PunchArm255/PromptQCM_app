@@ -1,6 +1,14 @@
 import { motion } from 'framer-motion';
 
-const StatCard = ({ item, index, maxHours }) => {
+const StatCard = ({
+    item,
+    index,
+    maxHours,
+    isDarkMode = false,
+    bgColor,
+    textColor,
+    textSecondary
+}) => {
     // Calculate the percentage but cap it at 100% (which is 20h)
     const MAX_HOURS = 20;
     const percentage = Math.min((item.hours / MAX_HOURS), 1);
@@ -25,6 +33,9 @@ const StatCard = ({ item, index, maxHours }) => {
         }
     };
 
+    // Background color for track circle
+    const circleTrackColor = isDarkMode ? "#3D3D3D" : "#E6E6E6";
+
     return (
         <motion.div
             initial={{ scale: 0, opacity: 0 }}
@@ -34,7 +45,7 @@ const StatCard = ({ item, index, maxHours }) => {
         >
             <div className="relative w-28 sm:w-32 md:w-36 h-28 sm:h-32 md:h-36 mb-3">
                 <svg className="w-full h-full" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="40" fill="none" stroke="#E6E6E6" strokeWidth="10" />
+                    <circle cx="50" cy="50" r="40" fill="none" stroke={circleTrackColor} strokeWidth="10" />
                     <motion.path
                         d={`M50,10 A40,40 0 ${(percentage * 100) > 50 ? 1 : 0},1 ${50 + 40 * Math.sin(2 * Math.PI * percentage)
                             },${50 - 40 * Math.cos(2 * Math.PI * percentage)
@@ -81,8 +92,8 @@ const StatCard = ({ item, index, maxHours }) => {
                     </span>
                 </motion.div>
             </div>
-            <p className="text-center text-sm sm:text-base font-medium text-[#252525]">{item.title}</p>
-            <p className="text-center text-xs text-gray-400">of 20h</p>
+            <p style={{ color: textColor }} className="text-center text-sm sm:text-base font-medium">{item.title}</p>
+            <p style={{ color: textSecondary || (isDarkMode ? "#9CA3AF" : "text-gray-400") }} className="text-center text-xs">of 20h</p>
         </motion.div>
     );
 };

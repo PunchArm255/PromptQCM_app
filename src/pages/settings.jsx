@@ -115,6 +115,7 @@ export const Settings = () => {
                 greeting="Settings"
                 showExclamation={false}
                 onSearch={handleSearch}
+                showSearchBar={false}
             />
 
             {/* Settings Content */}
@@ -343,9 +344,6 @@ export const Settings = () => {
                                     >
                                         <option value="English">English</option>
                                         <option value="French">French</option>
-                                        <option value="Spanish">Spanish</option>
-                                        <option value="German">German</option>
-                                        <option value="Arabic">Arabic</option>
                                     </select>
                                 </div>
 

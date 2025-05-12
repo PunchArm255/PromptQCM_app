@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { account } from '../lib/appwrite';
+import { useDarkMode } from '../lib/DarkModeContext';
 import Sidebar from './Sidebar';
 import MobileSidebar from './MobileSidebar';
 import Logo from '../assets/icons/logo.svg';
@@ -11,8 +12,14 @@ const Layout = () => {
     const [error, setError] = useState('');
     const [greeting, setGreeting] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { isDarkMode } = useDarkMode();
     const navigate = useNavigate();
     const location = useLocation();
+
+    // Background colors based on dark mode
+    const bgPrimary = isDarkMode ? "#121212" : "#EAEFFB";
+    const bgSecondary = isDarkMode ? "#1E1E1E" : "#F5F6FF";
+    const textPrimary = isDarkMode ? "#FFFFFF" : "#252525";
 
     useEffect(() => {
         const getUser = async () => {
@@ -65,13 +72,15 @@ const Layout = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
-            className="flex h-screen bg-[#EAEFFB] overflow-hidden font-gotham"
+            style={{ backgroundColor: bgPrimary }}
+            className="flex h-screen overflow-hidden font-gotham"
         >
             {/* Desktop Sidebar */}
             <Sidebar
                 user={user}
                 activeNavItem={getActiveNavItem()}
                 handleLogout={handleLogout}
+                isDarkMode={isDarkMode}
             />
 
             {/* Mobile Sidebar - positioned to cover the header */}
@@ -82,6 +91,7 @@ const Layout = () => {
                         activeNavItem={getActiveNavItem()}
                         toggleMobileMenu={toggleMobileMenu}
                         handleLogout={handleLogout}
+                        isDarkMode={isDarkMode}
                     />
                 )}
             </AnimatePresence>
@@ -98,13 +108,15 @@ const Layout = () => {
                     initial={{ y: -10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="lg:hidden fixed top-6 left-0 right-0 z-20 mx-4 flex items-center justify-between bg-[#F5F6FF] rounded-xl shadow-md px-4 py-3"
+                    style={{ backgroundColor: bgSecondary, color: textPrimary }}
+                    className="lg:hidden fixed top-6 left-0 right-0 z-20 mx-4 flex items-center justify-between rounded-xl shadow-md px-4 py-3"
                 >
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={toggleMobileMenu}
-                        className="p-2 rounded-full bg-[#F5F6FF] hover:bg-[#EAEFFB] transition-colors z-30"
+                        style={{ backgroundColor: bgSecondary, color: textPrimary }}
+                        className="p-2 rounded-full hover:bg-[#EAEFFB] transition-colors z-30"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import SearchBar from './SearchBar';
 
-const PageHeader = ({ greeting, userName, onSearch, showExclamation = true }) => {
+const PageHeader = ({ greeting, userName, onSearch, showExclamation = true, showSearchBar = false }) => {
     // Determine the text to show based on props
     const headerText = userName && showExclamation
         ? `${greeting}, ${userName}!`
@@ -33,7 +33,7 @@ const PageHeader = ({ greeting, userName, onSearch, showExclamation = true }) =>
                 {headerText}
             </motion.h2>
 
-            <SearchBar onSearch={onSearch} />
+            {showSearchBar && <SearchBar onSearch={onSearch} />}
         </motion.div>
     );
 };

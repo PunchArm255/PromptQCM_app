@@ -142,6 +142,7 @@ export const Library = () => {
                     greeting="Library"
                     showExclamation={false}
                     onSearch={handleSearch}
+                    showSearchBar={false}
                 />
                 <motion.button
                     whileHover={{ scale: 1.05 }}

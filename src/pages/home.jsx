@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 import '../styles/global.css';
+import { useDarkMode } from '../lib/DarkModeContext';
 
 // Components
 import PageHeader from '../components/PageHeader';
@@ -12,10 +13,19 @@ import RecentsCard from '../components/RecentsCard';
 
 export const Home = () => {
     const { user, greeting } = useOutletContext();
+    const { isDarkMode } = useDarkMode();
     const [searchQuery, setSearchQuery] = useState('');
     const [recentDocuments, setRecentDocuments] = useState([]);
     const [progressModules, setProgressModules] = useState([]);
     const [reportData, setReportData] = useState([]);
+
+    // Background colors based on dark mode
+    const bgPrimary = isDarkMode ? "#1E1E1E" : "#F5F6FF";
+    const bgSecondary = isDarkMode ? "#2D2D2D" : "#FFFFFF";
+    const bgAccent = isDarkMode ? "#3D3D3D" : "#F6F8FC";
+    const textPrimary = isDarkMode ? "#FFFFFF" : "#252525";
+    const textSecondary = isDarkMode ? "#E0E0E0" : "#6B7280";
+    const borderColor = isDarkMode ? "#3D3D3D" : "#E0E7EF";
 
     useEffect(() => {
         // Load documents from localStorage
@@ -113,29 +123,55 @@ export const Home = () => {
             initial="hidden"
             animate="visible"
             className="px-4 sm:px-6 md:px-8 py-6 md:py-8"
+            style={{ backgroundColor: isDarkMode ? "#121212" : "transparent" }}
         >
             {/* Header */}
             <PageHeader
                 greeting={greeting || 'Welcome'}
                 userName={user?.name?.split(' ')[0] || 'User'}
                 onSearch={handleSearch}
+                showSearchBar={true}
             />
 
             {/* Quick Action Buttons */}
-            <QuickActions />
+            <QuickActions
+                isDarkMode={isDarkMode}
+                bgColor={bgSecondary}
+                textColor={textPrimary}
+                textSecondary={textSecondary}
+            />
 
             {/* Progress Section */}
-            <ProgressSection modules={progressModules} />
+            <ProgressSection
+                modules={progressModules}
+                isDarkMode={isDarkMode}
+                bgColor={bgSecondary}
+                textColor={textPrimary}
+                textSecondary={textSecondary}
+                bgPrimary={bgPrimary}
+            />
 
             {/* Report and Recents Sections */}
             <motion.div
                 className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8"
             >
                 {/* Report Section */}
-                <ReportCard reportData={reportData} />
+                <ReportCard
+                    reportData={reportData}
+                    isDarkMode={isDarkMode}
+                    bgColor={bgSecondary}
+                    textColor={textPrimary}
+                    textSecondary={textSecondary}
+                />
 
                 {/* Recents Section */}
-                <RecentsCard documents={recentDocuments} />
+                <RecentsCard
+                    documents={recentDocuments}
+                    isDarkMode={isDarkMode}
+                    bgColor={bgSecondary}
+                    textColor={textPrimary}
+                    textSecondary={textSecondary}
+                />
             </motion.div>
         </motion.div>
     );

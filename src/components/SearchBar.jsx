@@ -23,7 +23,7 @@ const SearchBar = ({ onSearch }) => {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search for chi haja..."
+                    placeholder="Search for a file..."
                     className="w-full pl-10 pr-4 py-2 rounded-full border border-[#E0E7EF] bg-[#F5F6FF] focus:outline-none focus:ring-2 focus:ring-transparent focus:border-transparent focus:bg-white focus:shadow-md peer text-sm md:text-base"
                     style={{
                         backgroundImage: 'linear-gradient(white, white), linear-gradient(to right, #00CAC3, #AF42F6)',

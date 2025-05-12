@@ -49,10 +49,8 @@ export const Welcome = () => {
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#00CAC3] rounded-full opacity-10 blur-3xl"></div>
                 <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#AF42F6] rounded-full opacity-10 blur-3xl"></div>
 
-                <h1 className="text-3xl font-bold text-center mb-6 text-[#252525]">merhba bik a zin hh</h1>
-                <p className="text-gray-600 text-center mb-8">
-                    pfe f jib wili wili
-                </p>
+                <h1 className="text-3xl font-bold text-center mb-6 text-[#252525]">Welcome to PromptQCM</h1>
+
 
                 <motion.div
                     whileHover={{ scale: 1.02 }}

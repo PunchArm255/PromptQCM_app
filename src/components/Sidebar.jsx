@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { FiLogOut } from 'react-icons/fi';
 import Logo from '../assets/icons/logo.svg';
 import DashboardIcon from '../assets/icons/dashboard.svg';
 import LibraryIcon from '../assets/icons/library.svg';
@@ -8,7 +9,15 @@ import ReportsIcon from '../assets/icons/reports.svg';
 import SettingsIcon from '../assets/icons/settings.svg';
 import ProfilePlaceholder from '../assets/icons/profile.svg';
 
-const Sidebar = ({ user, activeNavItem, handleLogout }) => {
+const Sidebar = ({ user, activeNavItem, handleLogout, isDarkMode = false }) => {
+    // Background colors based on dark mode
+    const bgPrimary = isDarkMode ? "#1E1E1E" : "#F5F6FF";
+    const bgSecondary = isDarkMode ? "#2D2D2D" : "#FFFFFF";
+    const bgAccent = isDarkMode ? "#3D3D3D" : "#F6F8FC";
+    const textPrimary = isDarkMode ? "#FFFFFF" : "#252525";
+    const textSecondary = isDarkMode ? "#E0E0E0" : "#6B7280";
+    const borderColor = isDarkMode ? "#3D3D3D" : "#E0E7EF";
+
     // Animation configs
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -44,7 +53,8 @@ const Sidebar = ({ user, activeNavItem, handleLogout }) => {
             initial={{ x: -50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="hidden lg:flex w-64 bg-[#F5F6FF] rounded-r-3xl shadow-lg flex-col items-center py-10 px-4 z-20"
+            style={{ backgroundColor: bgPrimary }}
+            className="hidden lg:flex w-64 rounded-r-4xl shadow-lg flex-col items-center py-10 px-4 z-20"
         >
             {/* Logo */}
             <motion.div
@@ -72,10 +82,16 @@ const Sidebar = ({ user, activeNavItem, handleLogout }) => {
                     >
                         <Link
                             to={item.path}
-                            className={`flex items-center px-4 py-3 rounded-lg transition-all duration-300 hover:bg-[#F6F8FC] hover:shadow ${activeNavItem === item.name ? 'bg-[#F6F8FC] shadow' : ''}`}
+                            style={{
+                                backgroundColor: activeNavItem === item.name
+                                    ? bgAccent
+                                    : 'transparent',
+                                color: textPrimary
+                            }}
+                            className={`flex items-center px-4 py-3 rounded-lg transition-all duration-300 hover:bg-[#F6F8FC] hover:shadow ${activeNavItem === item.name ? 'shadow' : ''}`}
                         >
                             <img src={item.icon} alt={item.name} className="w-5 h-5 mr-3" />
-                            <span className="text-[#252525] font-medium text-base">{item.name}</span>
+                            <span className="font-medium text-base">{item.name}</span>
                         </Link>
                     </motion.div>
                 ))}
@@ -86,7 +102,8 @@ const Sidebar = ({ user, activeNavItem, handleLogout }) => {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.6, duration: 0.5 }}
-                className="mt-8 bg-[#F6F8FC] rounded-lg p-3 w-full flex items-center"
+                style={{ backgroundColor: bgAccent }}
+                className="mt-8 rounded-lg p-3 w-full flex items-center"
             >
                 <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-200">
                     {user?.profileImage ? (
@@ -96,8 +113,8 @@ const Sidebar = ({ user, activeNavItem, handleLogout }) => {
                     )}
                 </div>
                 <div className="ml-3">
-                    <p className="font-semibold text-[#252525] text-s">{user?.name || 'User'}</p>
-                    <p className="text-xs text-gray-400">Student</p>
+                    <p style={{ color: textPrimary }} className="font-semibold text-s">{user?.name || 'User'}</p>
+                    <p style={{ color: textSecondary }} className="text-xs">Student</p>
                 </div>
             </motion.div>
 
@@ -106,12 +123,17 @@ const Sidebar = ({ user, activeNavItem, handleLogout }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.7 }}
-                whileHover={{ backgroundColor: "#F6F8FC" }}
+                whileHover={{ backgroundColor: bgAccent }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleLogout}
-                className="mt-4 text-sm text-red-500 hover:underline p-2 w-full text-center rounded-lg"
+                style={{
+                    backgroundColor: isDarkMode ? "rgba(220, 38, 38, 0.1)" : "rgba(254, 226, 226, 0.8)",
+                    color: isDarkMode ? "#F87171" : "#DC2626"
+                }}
+                className="mt-4 flex items-center justify-center gap-2 text-sm p-3 w-full rounded-lg"
             >
-                Logout
+                <FiLogOut size={16} />
+                <span>Logout</span>
             </motion.button>
         </motion.div>
     );

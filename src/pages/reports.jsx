@@ -4,9 +4,11 @@ import { useOutletContext } from 'react-router-dom';
 import { FiCalendar, FiTrendingUp, FiClock, FiCheckCircle } from 'react-icons/fi';
 import PageHeader from '../components/PageHeader';
 import StatCard from '../components/StatCard';
+import { useDarkMode } from '../lib/DarkModeContext';
 
 export const Reports = () => {
     const { user } = useOutletContext();
+    const { isDarkMode } = useDarkMode();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedPeriod, setSelectedPeriod] = useState('Last 30 days');
     const [totalStats, setTotalStats] = useState({
@@ -15,6 +17,14 @@ export const Reports = () => {
         docsCompleted: 0
     });
     const [moduleStats, setModuleStats] = useState([]);
+
+    // Background colors based on dark mode
+    const bgPrimary = isDarkMode ? "#1E1E1E" : "#F5F6FF";
+    const bgSecondary = isDarkMode ? "#2D2D2D" : "#FFFFFF";
+    const bgAccent = isDarkMode ? "#3D3D3D" : "#F6F8FC";
+    const textPrimary = isDarkMode ? "#FFFFFF" : "#252525";
+    const textSecondary = isDarkMode ? "#E0E0E0" : "#6B7280";
+    const borderColor = isDarkMode ? "#3D3D3D" : "#E0E7EF";
 
     useEffect(() => {
         // Load data from localStorage
@@ -92,12 +102,13 @@ export const Reports = () => {
                 greeting="Reports"
                 showExclamation={false}
                 onSearch={handleSearch}
+                showSearchBar={false}
             />
 
             {/* Reports Content */}
-            <div className="bg-[#F5F6FF] rounded-2xl p-4 sm:p-6 md:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.03)]">
+            <div style={{ backgroundColor: bgPrimary }} className="rounded-2xl p-4 sm:p-6 md:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.03)]">
                 <div className="flex flex-col md:flex-row justify-between md:items-center mb-6">
-                    <h2 className="text-xl font-bold text-[#252525] mb-3 md:mb-0">Activity Overview</h2>
+                    <h2 style={{ color: textPrimary }} className="text-xl font-bold mb-3 md:mb-0">Activity Overview</h2>
                     <div className="flex flex-wrap gap-2">
                         {['Last 7 days', 'Last 30 days', 'All time'].map((period) => (
                             <motion.button
@@ -105,10 +116,17 @@ export const Reports = () => {
                                 whileHover={{ backgroundColor: selectedPeriod === period ? "#F6F8FC" : "#EAEFFB" }}
                                 whileTap={{ scale: 0.97 }}
                                 onClick={() => setSelectedPeriod(period)}
-                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${selectedPeriod === period
-                                    ? "bg-[#F6F8FC] text-[#AF42F6] border border-[#E0E7EF]"
-                                    : "bg-[#EAEFFB] text-[#6B7280]"
-                                    }`}
+                                style={{
+                                    backgroundColor: selectedPeriod === period
+                                        ? (isDarkMode ? "#3D3D3D" : "#F6F8FC")
+                                        : (isDarkMode ? "#2D2D2D" : "#EAEFFB"),
+                                    color: selectedPeriod === period
+                                        ? "#AF42F6"
+                                        : (isDarkMode ? "#E0E0E0" : "#6B7280"),
+                                    borderColor: selectedPeriod === period ? borderColor : "transparent",
+                                    borderWidth: selectedPeriod === period ? "1px" : "0"
+                                }}
+                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${selectedPeriod === period ? "border" : ""}`}
                             >
                                 {period}
                             </motion.button>
@@ -120,16 +138,17 @@ export const Reports = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                     <motion.div
                         variants={statCardVariants}
-                        className="bg-white rounded-xl p-5 shadow-sm"
+                        style={{ backgroundColor: bgSecondary }}
+                        className="rounded-xl p-5 shadow-sm"
                     >
                         <div className="flex items-center mb-3">
                             <div className="p-2 rounded-lg bg-[#FFF3E8] mr-3">
                                 <FiClock className="text-[#FFA048]" size={20} />
                             </div>
-                            <span className="text-[#6B7280] font-medium">Hours Spent</span>
+                            <span style={{ color: textSecondary }} className="font-medium">Hours Spent</span>
                         </div>
-                        <p className="text-3xl font-bold text-[#252525]">{totalStats.hoursSpent}h</p>
-                        <p className="text-sm text-gray-400 mt-1">
+                        <p style={{ color: textPrimary }} className="text-3xl font-bold">{totalStats.hoursSpent}h</p>
+                        <p style={{ color: isDarkMode ? "#9CA3AF" : "text-gray-400" }} className="text-sm mt-1">
                             <FiCalendar className="inline mr-1" size={14} />
                             {selectedPeriod}
                         </p>
@@ -137,16 +156,17 @@ export const Reports = () => {
 
                     <motion.div
                         variants={statCardVariants}
-                        className="bg-white rounded-xl p-5 shadow-sm"
+                        style={{ backgroundColor: bgSecondary }}
+                        className="rounded-xl p-5 shadow-sm"
                     >
                         <div className="flex items-center mb-3">
                             <div className="p-2 rounded-lg bg-[#E8F5FF] mr-3">
                                 <FiTrendingUp className="text-[#00A2FF]" size={20} />
                             </div>
-                            <span className="text-[#6B7280] font-medium">Progress Average</span>
+                            <span style={{ color: textSecondary }} className="font-medium">Progress Average</span>
                         </div>
-                        <p className="text-3xl font-bold text-[#252525]">{totalStats.modulesProgress}%</p>
-                        <p className="text-sm text-gray-400 mt-1">
+                        <p style={{ color: textPrimary }} className="text-3xl font-bold">{totalStats.modulesProgress}%</p>
+                        <p style={{ color: isDarkMode ? "#9CA3AF" : "text-gray-400" }} className="text-sm mt-1">
                             <FiCalendar className="inline mr-1" size={14} />
                             {selectedPeriod}
                         </p>
@@ -154,16 +174,17 @@ export const Reports = () => {
 
                     <motion.div
                         variants={statCardVariants}
-                        className="bg-white rounded-xl p-5 shadow-sm"
+                        style={{ backgroundColor: bgSecondary }}
+                        className="rounded-xl p-5 shadow-sm"
                     >
                         <div className="flex items-center mb-3">
                             <div className="p-2 rounded-lg bg-[#E8FFEF] mr-3">
                                 <FiCheckCircle className="text-[#2AD350]" size={20} />
                             </div>
-                            <span className="text-[#6B7280] font-medium">QCMs Completed</span>
+                            <span style={{ color: textSecondary }} className="font-medium">QCMs Completed</span>
                         </div>
-                        <p className="text-3xl font-bold text-[#252525]">{totalStats.docsCompleted}</p>
-                        <p className="text-sm text-gray-400 mt-1">
+                        <p style={{ color: textPrimary }} className="text-3xl font-bold">{totalStats.docsCompleted}</p>
+                        <p style={{ color: isDarkMode ? "#9CA3AF" : "text-gray-400" }} className="text-sm mt-1">
                             <FiCalendar className="inline mr-1" size={14} />
                             {selectedPeriod}
                         </p>
@@ -172,15 +193,23 @@ export const Reports = () => {
 
                 {/* Module Stats Section */}
                 <div>
-                    <h2 className="text-xl font-bold text-[#252525] mb-4">Module Hours</h2>
+                    <h2 style={{ color: textPrimary }} className="text-xl font-bold mb-4">Module Hours</h2>
                     <div className="flex flex-wrap justify-around gap-8">
                         {moduleStats.length > 0 ? (
                             moduleStats.map((item, index) => (
-                                <StatCard key={index} item={item} index={index} />
+                                <StatCard
+                                    key={index}
+                                    item={item}
+                                    index={index}
+                                    isDarkMode={isDarkMode}
+                                    bgColor={bgSecondary}
+                                    textColor={textPrimary}
+                                    textSecondary={textSecondary}
+                                />
                             ))
                         ) : (
-                            <div className="text-center py-8 w-full">
-                                <p className="text-gray-500">No module data available yet.</p>
+                            <div style={{ color: textSecondary }} className="text-center py-8 w-full">
+                                <p>No module data available yet.</p>
                             </div>
                         )}
                     </div>
@@ -188,10 +217,10 @@ export const Reports = () => {
 
                 {/* Activity Timeline */}
                 <div className="mt-8">
-                    <h2 className="text-xl font-bold text-[#252525] mb-4">Activity Timeline</h2>
-                    <div className="bg-white rounded-xl p-5 shadow-sm">
+                    <h2 style={{ color: textPrimary }} className="text-xl font-bold mb-4">Activity Timeline</h2>
+                    <div style={{ backgroundColor: bgSecondary }} className="rounded-xl p-5 shadow-sm">
                         <div className="flex justify-center items-center h-40">
-                            <p className="text-gray-500">Timeline visualization will be available soon.</p>
+                            <p style={{ color: textSecondary }}>Timeline visualization will be available soon.</p>
                         </div>
                     </div>
                 </div>

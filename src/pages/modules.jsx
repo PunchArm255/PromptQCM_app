@@ -3,9 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 import { FiSettings, FiPlus, FiTrash2, FiX, FiEdit, FiFilter, FiGrid } from 'react-icons/fi';
 import PageHeader from '../components/PageHeader';
+import { useDarkMode } from '../lib/DarkModeContext';
 
 export const Modules = () => {
     const { user } = useOutletContext();
+    const { isDarkMode } = useDarkMode();
     const [searchQuery, setSearchQuery] = useState('');
     const [establishments, setEstablishments] = useState([]);
     const [modules, setModules] = useState([]);
@@ -16,6 +18,14 @@ export const Modules = () => {
     const [newEstablishment, setNewEstablishment] = useState('');
     const [showSettings, setShowSettings] = useState(false);
     const [selectedItems, setSelectedItems] = useState([]);
+
+    // Background colors based on dark mode
+    const bgPrimary = isDarkMode ? "#1E1E1E" : "#F5F6FF";
+    const bgSecondary = isDarkMode ? "#2D2D2D" : "#FFFFFF";
+    const bgAccent = isDarkMode ? "#3D3D3D" : "#F6F8FC";
+    const textPrimary = isDarkMode ? "#FFFFFF" : "#252525";
+    const textSecondary = isDarkMode ? "#E0E0E0" : "#6B7280";
+    const borderColor = isDarkMode ? "#3D3D3D" : "#E0E7EF";
 
     // New module state
     const [newModule, setNewModule] = useState({
@@ -245,25 +255,33 @@ export const Modules = () => {
                     greeting="Modules"
                     showExclamation={false}
                     onSearch={handleSearch}
+                    showSearchBar={false}
                 />
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setShowSettings(!showSettings)}
-                    className={`p-2.5 rounded-full ${showSettings ? 'bg-[#AF42F6] text-white' : 'bg-[#F6F8FC] text-[#252525]'}`}
+                    style={{
+                        backgroundColor: showSettings ? "#AF42F6" : bgAccent,
+                        color: showSettings ? "#FFFFFF" : textPrimary
+                    }}
+                    className="p-2.5 rounded-full"
                 >
                     <FiSettings size={20} />
                 </motion.button>
             </div>
 
             {/* Modules Content */}
-            <div className="bg-[#F5F6FF] rounded-2xl p-4 sm:p-6 md:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.03)]">
+            <div style={{ backgroundColor: bgPrimary }} className="rounded-2xl p-4 sm:p-6 md:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.03)]">
                 {/* Settings Mode */}
                 {showSettings && (
-                    <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-[#F6F8FC] rounded-xl">
+                    <div
+                        style={{ backgroundColor: bgAccent }}
+                        className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl"
+                    >
                         <div>
-                            <h3 className="font-semibold text-[#252525] mb-1">Module Settings</h3>
-                            <p className="text-sm text-gray-500">{selectedItems.length} items selected</p>
+                            <h3 style={{ color: textPrimary }} className="font-semibold mb-1">Module Settings</h3>
+                            <p style={{ color: textSecondary }} className="text-sm">{selectedItems.length} items selected</p>
                         </div>
                         <div className="flex gap-2">
                             <motion.button
@@ -271,9 +289,15 @@ export const Modules = () => {
                                 whileTap={{ scale: 0.95 }}
                                 onClick={deleteSelectedItems}
                                 disabled={selectedItems.length === 0}
-                                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg ${selectedItems.length === 0
-                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                                    : 'bg-red-100 text-red-600'}`}
+                                style={{
+                                    backgroundColor: selectedItems.length === 0
+                                        ? (isDarkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(209, 213, 219, 0.8)')
+                                        : (isDarkMode ? 'rgba(220, 38, 38, 0.2)' : 'rgba(254, 226, 226, 0.8)'),
+                                    color: selectedItems.length === 0
+                                        ? (isDarkMode ? 'rgba(156, 163, 175, 0.8)' : 'rgba(107, 114, 128, 0.8)')
+                                        : (isDarkMode ? '#F87171' : 'rgba(220, 38, 38, 0.8)')
+                                }}
+                                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg ${selectedItems.length === 0 ? 'cursor-not-allowed' : ''}`}
                             >
                                 <FiTrash2 size={16} />
                                 <span>Delete</span>
@@ -282,7 +306,8 @@ export const Modules = () => {
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setShowSettings(false)}
-                                className="bg-[#EAEFFB] text-[#252525] px-4 py-2 rounded-lg flex items-center gap-1.5"
+                                style={{ backgroundColor: isDarkMode ? "#2D2D2D" : "#EAEFFB", color: textPrimary }}
+                                className="px-4 py-2 rounded-lg flex items-center gap-1.5"
                             >
                                 <FiX size={16} />
                                 <span>Close</span>
@@ -295,15 +320,16 @@ export const Modules = () => {
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
                         <div className="flex items-center">
-                            <h2 className="text-xl font-bold text-[#252525] mr-2">Establishments</h2>
-                            <FiFilter className="text-gray-400" />
+                            <h2 style={{ color: textPrimary }} className="text-xl font-bold mr-2">Establishments</h2>
+                            <FiFilter style={{ color: isDarkMode ? "#9CA3AF" : "text-gray-400" }} />
                         </div>
                         <div className="flex flex-wrap gap-2">
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setIsAddingEstablishment(true)}
-                                className="bg-[#F6F8FC] text-[#AF42F6] px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1"
+                                style={{ backgroundColor: bgAccent, color: "#AF42F6" }}
+                                className="px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1"
                             >
                                 <FiPlus size={16} />
                                 <span>Add Establishment</span>
@@ -316,10 +342,17 @@ export const Modules = () => {
                             whileHover={{ backgroundColor: selectedEstablishment === 'all' ? "#F6F8FC" : "#EAEFFB" }}
                             whileTap={{ scale: 0.97 }}
                             onClick={() => setSelectedEstablishment('all')}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${selectedEstablishment === 'all'
-                                    ? "bg-[#F6F8FC] text-[#AF42F6] border border-[#E0E7EF]"
-                                    : "bg-[#EAEFFB] text-[#6B7280]"
-                                }`}
+                            style={{
+                                backgroundColor: selectedEstablishment === 'all'
+                                    ? (isDarkMode ? "#3D3D3D" : "#F6F8FC")
+                                    : (isDarkMode ? "#2D2D2D" : "#EAEFFB"),
+                                color: selectedEstablishment === 'all'
+                                    ? "#AF42F6"
+                                    : (isDarkMode ? "#E0E0E0" : "#6B7280"),
+                                borderColor: selectedEstablishment === 'all' ? borderColor : "transparent",
+                                borderWidth: selectedEstablishment === 'all' ? "1px" : "0"
+                            }}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${selectedEstablishment === 'all' ? "border" : ""}`}
                         >
                             All Establishments
                         </motion.button>
@@ -336,13 +369,23 @@ export const Modules = () => {
                                 <motion.button
                                     whileHover={{ backgroundColor: selectedEstablishment === establishment.id.toString() ? "#F6F8FC" : "#EAEFFB" }}
                                     whileTap={{ scale: 0.97 }}
-                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${selectedEstablishment === establishment.id.toString()
-                                            ? "bg-[#F6F8FC] text-[#AF42F6] border border-[#E0E7EF]"
-                                            : "bg-[#EAEFFB] text-[#6B7280]"
-                                        } ${showSettings && selectedItems.includes(`establishment-${establishment.id}`)
-                                            ? 'border-2 border-[#AF42F6]'
-                                            : ''
-                                        }`}
+                                    style={{
+                                        backgroundColor: selectedEstablishment === establishment.id.toString()
+                                            ? (isDarkMode ? "#3D3D3D" : "#F6F8FC")
+                                            : (isDarkMode ? "#2D2D2D" : "#EAEFFB"),
+                                        color: selectedEstablishment === establishment.id.toString()
+                                            ? "#AF42F6"
+                                            : (isDarkMode ? "#E0E0E0" : "#6B7280"),
+                                        borderColor: selectedEstablishment === establishment.id.toString() ? borderColor : "transparent",
+                                        borderWidth: "1px",
+                                        borderStyle: showSettings && selectedItems.includes(`establishment-${establishment.id}`)
+                                            ? 'solid'
+                                            : (selectedEstablishment === establishment.id.toString() ? 'solid' : 'none'),
+                                        borderColor: showSettings && selectedItems.includes(`establishment-${establishment.id}`)
+                                            ? '#AF42F6'
+                                            : borderColor
+                                    }}
+                                    className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
                                 >
                                     {establishment.name}
                                 </motion.button>
@@ -354,12 +397,13 @@ export const Modules = () => {
                 {/* Modules Section */}
                 <div>
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-bold text-[#252525]">Modules</h2>
+                        <h2 style={{ color: textPrimary }} className="text-xl font-bold">Modules</h2>
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={openAddModuleModal}
-                            className="bg-[#F6F8FC] text-[#AF42F6] px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1"
+                            style={{ backgroundColor: bgAccent, color: "#AF42F6" }}
+                            className="px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1"
                         >
                             <FiPlus size={16} />
                             <span>Add Module</span>
@@ -373,30 +417,37 @@ export const Modules = () => {
                                     key={module.id}
                                     variants={itemVariants}
                                     whileHover={{ scale: 1.02 }}
-                                    className={`bg-white rounded-xl p-5 shadow-sm ${showSettings && selectedItems.includes(`module-${module.id}`)
-                                            ? 'border-2 border-[#AF42F6]'
-                                            : ''
-                                        }`}
+                                    style={{
+                                        backgroundColor: bgSecondary,
+                                        borderColor: showSettings && selectedItems.includes(`module-${module.id}`)
+                                            ? '#AF42F6'
+                                            : 'transparent',
+                                        borderWidth: showSettings && selectedItems.includes(`module-${module.id}`) ? '2px' : '0'
+                                    }}
+                                    className="rounded-xl p-5 shadow-sm"
                                     onClick={() => showSettings
                                         ? toggleItemSelection('module', module.id)
                                         : console.log('Navigate to module', module.id)
                                     }
                                 >
                                     <div className="flex justify-between items-start mb-3">
-                                        <h3 className="font-bold text-lg text-[#252525]">{module.name}</h3>
-                                        <span className="px-2 py-1 bg-[#EAEFFB] text-xs rounded-lg text-[#6B7280]">
+                                        <h3 style={{ color: textPrimary }} className="font-bold text-lg">{module.name}</h3>
+                                        <span style={{
+                                            backgroundColor: isDarkMode ? "#3D3D3D" : "#EAEFFB",
+                                            color: isDarkMode ? "#E0E0E0" : "#6B7280"
+                                        }} className="px-2 py-1 text-xs rounded-lg">
                                             {module.type}
                                         </span>
                                     </div>
-                                    <p className="text-gray-500 text-sm mb-4 line-clamp-2">{module.description}</p>
+                                    <p style={{ color: isDarkMode ? "#9CA3AF" : "text-gray-500" }} className="text-sm mb-4 line-clamp-2">{module.description}</p>
 
                                     <div className="flex justify-between text-xs mb-2">
-                                        <span className="text-[#6B7280]">Progress</span>
-                                        <span className="font-semibold text-[#AF42F6]">
+                                        <span style={{ color: isDarkMode ? "#9CA3AF" : "#6B7280" }}>Progress</span>
+                                        <span style={{ color: "#AF42F6" }} className="font-semibold">
                                             {module.completedDocs}/{module.totalDocs} QCMs
                                         </span>
                                     </div>
-                                    <div className="h-2 w-full bg-[#EAEFFB] rounded-full overflow-hidden">
+                                    <div style={{ backgroundColor: isDarkMode ? "#3D3D3D" : "#EAEFFB" }} className="h-2 w-full rounded-full overflow-hidden">
                                         <motion.div
                                             initial={{ width: 0 }}
                                             animate={{ width: `${(module.completedDocs / (module.totalDocs || 1)) * 100}%` }}
@@ -407,8 +458,8 @@ export const Modules = () => {
 
                                     {/* Establishment tag */}
                                     <div className="mt-4 flex items-center">
-                                        <FiGrid size={14} className="text-gray-400 mr-1.5" />
-                                        <span className="text-xs text-gray-500">
+                                        <FiGrid size={14} style={{ color: isDarkMode ? "#9CA3AF" : "text-gray-400" }} className="mr-1.5" />
+                                        <span style={{ color: isDarkMode ? "#9CA3AF" : "text-gray-500" }} className="text-xs">
                                             {establishments.find(e => e.id === module.establishmentId)?.name || 'Unknown'}
                                         </span>
                                     </div>
@@ -416,12 +467,12 @@ export const Modules = () => {
                             ))}
                         </div>
                     ) : (
-                        <div className="bg-white rounded-xl p-8 text-center">
-                            <div className="text-gray-400 mb-2">
+                        <div style={{ backgroundColor: bgSecondary }} className="rounded-xl p-8 text-center">
+                            <div style={{ color: isDarkMode ? "#9CA3AF" : "text-gray-400" }} className="mb-2">
                                 <FiGrid size={40} className="mx-auto" />
                             </div>
-                            <h3 className="text-lg font-semibold text-[#252525] mb-1">No modules found</h3>
-                            <p className="text-gray-500 text-sm mb-4">
+                            <h3 style={{ color: textPrimary }} className="text-lg font-semibold mb-1">No modules found</h3>
+                            <p style={{ color: isDarkMode ? "#9CA3AF" : "text-gray-500" }} className="text-sm mb-4">
                                 {selectedEstablishment === 'all'
                                     ? 'You haven\'t created any modules yet.'
                                     : 'No modules in this establishment.'}
@@ -430,7 +481,8 @@ export const Modules = () => {
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={openAddModuleModal}
-                                className="bg-[#F6F8FC] text-[#AF42F6] px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center gap-1.5"
+                                style={{ backgroundColor: bgAccent, color: "#AF42F6" }}
+                                className="px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center gap-1.5"
                             >
                                 <FiPlus size={16} />
                                 <span>Add Module</span>
@@ -443,24 +495,30 @@ export const Modules = () => {
             {/* Add Establishment Modal */}
             <AnimatePresence>
                 {isAddingEstablishment && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
                         <motion.div
                             variants={modalVariants}
                             initial="hidden"
                             animate="visible"
                             exit="exit"
-                            className="bg-white rounded-2xl p-6 w-full max-w-md"
+                            style={{ backgroundColor: bgSecondary }}
+                            className="rounded-2xl p-6 w-full max-w-md"
                         >
-                            <h3 className="text-xl font-bold text-[#252525] mb-4">Add Establishment</h3>
+                            <h3 style={{ color: textPrimary }} className="text-xl font-bold mb-4">Add Establishment</h3>
                             <div className="mb-4">
-                                <label htmlFor="establishmentName" className="block text-sm font-medium text-gray-700 mb-1">Establishment Name</label>
+                                <label style={{ color: textSecondary }} htmlFor="establishmentName" className="block text-sm font-medium mb-1">Establishment Name</label>
                                 <input
                                     type="text"
                                     id="establishmentName"
                                     value={newEstablishment}
                                     onChange={(e) => setNewEstablishment(e.target.value)}
                                     placeholder="Enter establishment name"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#AF42F6]"
+                                    style={{
+                                        backgroundColor: bgAccent,
+                                        color: textPrimary,
+                                        borderColor: borderColor
+                                    }}
+                                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#AF42F6]"
                                 />
                             </div>
                             <div className="flex justify-end gap-2">
@@ -468,7 +526,12 @@ export const Modules = () => {
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => setIsAddingEstablishment(false)}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700"
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: textPrimary,
+                                        borderColor: borderColor
+                                    }}
+                                    className="px-4 py-2 border rounded-lg"
                                 >
                                     Cancel
                                 </motion.button>
@@ -477,7 +540,11 @@ export const Modules = () => {
                                     whileTap={{ scale: 0.95 }}
                                     onClick={addEstablishment}
                                     disabled={!newEstablishment.trim()}
-                                    className={`px-4 py-2 rounded-lg text-white ${!newEstablishment.trim() ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#AF42F6]'}`}
+                                    style={{
+                                        backgroundColor: !newEstablishment.trim() ? "#9CA3AF" : "#AF42F6",
+                                        color: "#FFFFFF"
+                                    }}
+                                    className={`px-4 py-2 rounded-lg ${!newEstablishment.trim() ? 'cursor-not-allowed' : ''}`}
                                 >
                                     Add Establishment
                                 </motion.button>
@@ -490,59 +557,80 @@ export const Modules = () => {
             {/* Add Module Modal */}
             <AnimatePresence>
                 {isAddingModule && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
                         <motion.div
                             variants={modalVariants}
                             initial="hidden"
                             animate="visible"
                             exit="exit"
-                            className="bg-white rounded-2xl p-6 w-full max-w-md"
+                            style={{ backgroundColor: bgSecondary }}
+                            className="rounded-2xl p-6 w-full max-w-md"
                         >
-                            <h3 className="text-xl font-bold text-[#252525] mb-4">Add Module</h3>
+                            <h3 style={{ color: textPrimary }} className="text-xl font-bold mb-4">Add Module</h3>
 
                             <div className="mb-4">
-                                <label htmlFor="moduleName" className="block text-sm font-medium text-gray-700 mb-1">Module Name</label>
+                                <label style={{ color: textSecondary }} htmlFor="moduleName" className="block text-sm font-medium mb-1">Module Name</label>
                                 <input
                                     type="text"
                                     id="moduleName"
                                     value={newModule.name}
                                     onChange={(e) => setNewModule({ ...newModule, name: e.target.value })}
                                     placeholder="Enter module name"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#AF42F6]"
+                                    style={{
+                                        backgroundColor: bgAccent,
+                                        color: textPrimary,
+                                        borderColor: borderColor
+                                    }}
+                                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#AF42F6]"
                                 />
                             </div>
 
                             <div className="mb-4">
-                                <label htmlFor="moduleDescription" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <label style={{ color: textSecondary }} htmlFor="moduleDescription" className="block text-sm font-medium mb-1">Description</label>
                                 <textarea
                                     id="moduleDescription"
                                     value={newModule.description}
                                     onChange={(e) => setNewModule({ ...newModule, description: e.target.value })}
                                     placeholder="Enter module description"
                                     rows={3}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#AF42F6]"
+                                    style={{
+                                        backgroundColor: bgAccent,
+                                        color: textPrimary,
+                                        borderColor: borderColor
+                                    }}
+                                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#AF42F6]"
                                 />
                             </div>
 
                             <div className="mb-4">
-                                <label htmlFor="moduleType" className="block text-sm font-medium text-gray-700 mb-1">Module Type</label>
+                                <label style={{ color: textSecondary }} htmlFor="moduleType" className="block text-sm font-medium mb-1">Module Type</label>
                                 <input
                                     type="text"
                                     id="moduleType"
                                     value={newModule.type}
                                     onChange={(e) => setNewModule({ ...newModule, type: e.target.value })}
                                     placeholder="e.g. Mathematics, Physics, Computer Science"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#AF42F6]"
+                                    style={{
+                                        backgroundColor: bgAccent,
+                                        color: textPrimary,
+                                        borderColor: borderColor
+                                    }}
+                                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#AF42F6]"
                                 />
                             </div>
 
                             <div className="mb-6">
-                                <label htmlFor="establishmentSelect" className="block text-sm font-medium text-gray-700 mb-1">Establishment</label>
+                                <label style={{ color: textSecondary }} htmlFor="establishmentSelect" className="block text-sm font-medium mb-1">Establishment</label>
                                 <select
                                     id="establishmentSelect"
                                     value={newModule.establishmentId || ''}
                                     onChange={(e) => setNewModule({ ...newModule, establishmentId: parseInt(e.target.value) })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#AF42F6]"
+                                    style={{
+                                        backgroundColor: bgAccent,
+                                        color: textPrimary,
+                                        borderColor: borderColor
+                                    }}
+                                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#AF42F6]"
                                 >
                                     <option value="">Select an establishment</option>
                                     {establishments.map(establishment => (
@@ -558,7 +646,12 @@ export const Modules = () => {
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => setIsAddingModule(false)}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700"
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: textPrimary,
+                                        borderColor: borderColor
+                                    }}
+                                    className="px-4 py-2 border rounded-lg"
                                 >
                                     Cancel
                                 </motion.button>
@@ -567,9 +660,15 @@ export const Modules = () => {
                                     whileTap={{ scale: 0.95 }}
                                     onClick={addModule}
                                     disabled={!newModule.name.trim() || !newModule.description.trim() || !newModule.type.trim() || !newModule.establishmentId}
-                                    className={`px-4 py-2 rounded-lg text-white ${!newModule.name.trim() || !newModule.description.trim() || !newModule.type.trim() || !newModule.establishmentId
-                                            ? 'bg-gray-400 cursor-not-allowed'
-                                            : 'bg-[#AF42F6]'
+                                    style={{
+                                        backgroundColor: !newModule.name.trim() || !newModule.description.trim() || !newModule.type.trim() || !newModule.establishmentId
+                                            ? "#9CA3AF"
+                                            : "#AF42F6",
+                                        color: "#FFFFFF"
+                                    }}
+                                    className={`px-4 py-2 rounded-lg ${!newModule.name.trim() || !newModule.description.trim() || !newModule.type.trim() || !newModule.establishmentId
+                                        ? 'cursor-not-allowed'
+                                        : ''
                                         }`}
                                 >
                                     Add Module
