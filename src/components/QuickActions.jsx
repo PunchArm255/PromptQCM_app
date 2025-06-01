@@ -19,13 +19,13 @@ const QuickActions = () => {
             className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6 sm:mb-8"
         >
             <ActionButton
-                to="/generate-qcm"
+                to="/generate"
                 text="Generate QCM"
                 icon={<img src={GenerateIcon} alt="Generate QCM" className="w-3 h-3 sm:w-4 sm:h-4" />}
             />
 
             <ActionButton
-                to="/upload-qcm"
+                to="/upload"
                 text="Upload QCM"
                 icon={<img src={UploadIcon} alt="Upload QCM" className="w-3 h-3 sm:w-4 sm:h-4" />}
             />

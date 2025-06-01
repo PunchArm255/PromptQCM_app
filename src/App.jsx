@@ -12,6 +12,7 @@ import { Library } from './pages/library';
 import { Modules } from './pages/modules';
 import { Reports } from './pages/reports';
 import { Settings } from './pages/settings';
+import { Generate } from './pages/generate';
 
 // Layout component
 import Layout from './components/Layout';
@@ -37,6 +38,7 @@ export default function App() {
             <Route path="/modules" element={<Modules />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/generate" element={<Generate />} />
           </Route>
 
           {/* Redirect any unknown routes to home */}
