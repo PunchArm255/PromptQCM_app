@@ -4,12 +4,12 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { useOutletContext } from 'react-router-dom';
 import Logo from '../assets/icons/logo.svg';
-import { generateQCMWithGemini } from '../lib/gemini';
+import { generateQCMWithOoba } from '../lib/ooba';
 
 const examplePrompt = 'Generate a QCM about the French Revolution with 5 questions, each with 4 options and only one correct answer.';
 
-// Parse Gemini response to QCM format
-function parseGeminiQCMResponse(text) {
+// Parse oobabooga response to QCM format
+function parseOobaQCMResponse(text) {
     // Try to extract questions, options, and answers from the text
     // Expecting a format like:
     // 1. Question text\nA) Option1\nB) Option2\nC) Option3\nD) Option4\nAnswer: B\n
@@ -69,12 +69,12 @@ const Generate = () => {
         setMessages(msgs => [...msgs, { sender: 'user', text: input.trim() }]);
         setInput('');
         try {
-            const geminiResponse = await generateQCMWithGemini(input.trim() + '\nFormat: Numbered questions, each with 4 options (A-D), and indicate the correct answer.');
+            const oobaResponse = await generateQCMWithOoba(input.trim() + '\nFormat: Numbered questions, each with 4 options (A-D), and indicate the correct answer.');
             setMessages(msgs => [...msgs, { sender: 'ai', text: 'Here is your generated QCM!' }]);
-            const parsed = parseGeminiQCMResponse(geminiResponse);
+            const parsed = parseOobaQCMResponse(oobaResponse);
             setQcm(parsed);
         } catch (err) {
-            setError('Failed to generate QCM. Please try again.');
+            setError('Error generating QCM. Please try again.');
         }
         setLoading(false);
         scrollToBottom();
