@@ -4,15 +4,12 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { useOutletContext } from 'react-router-dom';
 import Logo from '../assets/icons/logo.svg';
-import { generateQCMWithOoba } from '../lib/ooba';
+import { generateQCMWithOpenRouter } from '../lib/openrouter';
 
-const examplePrompt = 'Generate a QCM about the French Revolution with 5 questions, each with 4 options and only one correct answer.';
+const examplePrompt = `Write a QCM about Python basics with 5 questions, difficulty: easy, include code snippets: yes. Format: Numbered questions, each with 4 options (A-D), and indicate the correct answer at the end of each question as 'Answer: X'.`;
 
-// Parse oobabooga response to QCM format
-function parseOobaQCMResponse(text) {
-    // Try to extract questions, options, and answers from the text
-    // Expecting a format like:
-    // 1. Question text\nA) Option1\nB) Option2\nC) Option3\nD) Option4\nAnswer: B\n
+function parseOpenRouterQCMResponse(text) {
+    // Parse the response into QCM format
     const questionBlocks = text.split(/\n\s*\n/).filter(Boolean);
     const questions = [];
     for (const block of questionBlocks) {
@@ -53,14 +50,12 @@ const Generate = () => {
     const [error, setError] = useState(null);
     const chatEndRef = useRef(null);
 
-    // Scroll to bottom on new message
     const scrollToBottom = () => {
         setTimeout(() => {
             if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }, 100);
     };
 
-    // Handle user input
     const handleSend = async (e) => {
         e.preventDefault();
         if (!input.trim()) return;
@@ -69,9 +64,9 @@ const Generate = () => {
         setMessages(msgs => [...msgs, { sender: 'user', text: input.trim() }]);
         setInput('');
         try {
-            const oobaResponse = await generateQCMWithOoba(input.trim() + '\nFormat: Numbered questions, each with 4 options (A-D), and indicate the correct answer.');
+            const openRouterResponse = await generateQCMWithOpenRouter(input.trim());
             setMessages(msgs => [...msgs, { sender: 'ai', text: 'Here is your generated QCM!' }]);
-            const parsed = parseOobaQCMResponse(oobaResponse);
+            const parsed = parseOpenRouterQCMResponse(openRouterResponse);
             setQcm(parsed);
         } catch (err) {
             setError('Error generating QCM. Please try again.');
@@ -80,7 +75,6 @@ const Generate = () => {
         scrollToBottom();
     };
 
-    // Export QCM as PDF
     const handleExportPDF = () => {
         if (!qcm) return;
         const doc = new jsPDF();
@@ -137,7 +131,7 @@ const Generate = () => {
                     <input
                         type="text"
                         className="flex-1 py-3 px-4 bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#AF42F6] focus:border-transparent transition-all font-gotham"
-                        placeholder="Describe your QCM (e.g. 10 questions about Python basics)"
+                        placeholder="Describe your QCM (e.g. Write QCM about JavaScript, 10 questions, difficulty: medium, code snippets: no)"
                         value={input}
                         onChange={e => setInput(e.target.value)}
                         disabled={loading}
