@@ -92,7 +92,7 @@ const Generate = () => {
             } else {
                 const parsed = parseOpenRouterQCMResponse(openRouterResponse);
                 if (parsed) {
-                    setMessages(msgs => [...msgs, { sender: 'ai', text: 'Here is your generated QCM!' }]);
+                    setMessages(msgs => [...msgs, { sender: 'ai', text: 'Your QCM is done!' }]);
                     setQcm(parsed);
                 } else {
                     setMessages(msgs => [...msgs, { sender: 'ai', text: 'Sorry, I could not parse a valid QCM from the response.' }]);
@@ -206,6 +206,7 @@ const Generate = () => {
                                     {showAnswers ? 'Hide Answers' : 'Show Answers'}
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={handleExportPDF}
                                     className="py-2 px-4 rounded-lg text-sm font-semibold text-white"
                                     style={{ background: 'linear-gradient(to right, #AF42F6, #00CAC3)' }}

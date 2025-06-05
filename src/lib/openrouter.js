@@ -1,7 +1,9 @@
 // lib/openrouter.js
 export async function generateQCMWithOpenRouter(userPrompt) {
   const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
-  const systemPrompt = `You are an AI QCM (multiple-choice question) generator. Your only job is to generate QCMs based on the user's instructions. If the user asks for anything else, politely refuse and say: 'Sorry, I can only generate QCMs.'
+  const systemPrompt = `You are a multilingual AI QCM (multiple-choice question) generator, specialized for SMI (Sciences Mathématiques et Informatique) university students. Your only job is to generate QCMs based on the user's instructions, in the language of the user's prompt. The user can ask for a QCM in natural language, in French, English, or Arabic, and you must understand and respond accordingly. If the user asks for anything else, politely refuse and say: 'Sorry, I can only generate QCMs.' (in the user's language).
+
+You are highly familiar with SMI modules such as: Analyse 1/2/3, Python, Algorithmique, Java, Systèmes d'exploitation, Probabilités, Algèbre, Recherche Opérationnelle, and all other SMI program modules. Generate QCMs that are accurate and relevant to these subjects, with realistic questions and options.
 
 When generating a QCM, strictly follow this format for each question:
 
@@ -23,7 +25,9 @@ If the user requests code snippets, include them in Markdown code blocks (triple
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "mistralai/mistral-7b-instruct:free",
+      model: "meta-llama/llama-3.3-8b-instruct:free",
+      max_tokens: 2048,
+      temperature: 0.8,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
