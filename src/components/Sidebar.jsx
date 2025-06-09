@@ -1,15 +1,24 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FiLogOut } from 'react-icons/fi';
+import { useDarkMode } from '../lib/DarkModeContext';
 import Logo from '../assets/icons/logo.svg';
+import LogoDark from '../assets/icons/logoDark.svg';
 import DashboardIcon from '../assets/icons/dashboard.svg';
+import DashboardIconDark from '../assets/icons/dashboardDark.svg';
 import LibraryIcon from '../assets/icons/library.svg';
+import LibraryIconDark from '../assets/icons/libraryDark.svg';
 import ModulesIcon from '../assets/icons/modules.svg';
+import ModulesIconDark from '../assets/icons/modulesDark.svg';
 import ReportsIcon from '../assets/icons/reports.svg';
+import ReportsIconDark from '../assets/icons/reportsDark.svg';
 import SettingsIcon from '../assets/icons/settings.svg';
+import SettingsIconDark from '../assets/icons/settingsDark.svg';
 import ProfilePlaceholder from '../assets/icons/profile.svg';
+import ProfilePlaceholderDark from '../assets/icons/profileDark.svg';
 
-const Sidebar = ({ user, activeNavItem, handleLogout, isDarkMode = false }) => {
+const Sidebar = ({ user, activeNavItem, handleLogout }) => {
+    const { isDarkMode } = useDarkMode();
     // Background colors based on dark mode
     const bgPrimary = isDarkMode ? "#1E1E1E" : "#F5F6FF";
     const bgSecondary = isDarkMode ? "#2D2D2D" : "#FFFFFF";
@@ -41,11 +50,11 @@ const Sidebar = ({ user, activeNavItem, handleLogout, isDarkMode = false }) => {
 
     // Navigation items
     const navItems = [
-        { name: 'Dashboard', icon: DashboardIcon, path: '/home' },
-        { name: 'Library', icon: LibraryIcon, path: '/library' },
-        { name: 'Modules', icon: ModulesIcon, path: '/modules' },
-        { name: 'Reports', icon: ReportsIcon, path: '/reports' },
-        { name: 'Settings', icon: SettingsIcon, path: '/settings' },
+        { name: 'Dashboard', icon: isDarkMode ? DashboardIconDark : DashboardIcon, path: '/home' },
+        { name: 'Library', icon: isDarkMode ? LibraryIconDark : LibraryIcon, path: '/library' },
+        { name: 'Modules', icon: isDarkMode ? ModulesIconDark : ModulesIcon, path: '/modules' },
+        { name: 'Reports', icon: isDarkMode ? ReportsIconDark : ReportsIcon, path: '/reports' },
+        { name: 'Settings', icon: isDarkMode ? SettingsIconDark : SettingsIcon, path: '/settings' },
     ];
 
     return (
@@ -63,7 +72,7 @@ const Sidebar = ({ user, activeNavItem, handleLogout, isDarkMode = false }) => {
                 transition={{ delay: 0.2, duration: 0.5 }}
                 className="mb-12 flex items-center gap-2"
             >
-                <img src={Logo} alt="PromptQCM" className="h-12" />
+                <img src={isDarkMode ? LogoDark : Logo} alt="PromptQCM" className="h-12" />
             </motion.div>
 
             {/* Navigation */}
@@ -106,11 +115,7 @@ const Sidebar = ({ user, activeNavItem, handleLogout, isDarkMode = false }) => {
                 className="mt-8 rounded-lg p-3 w-full flex items-center"
             >
                 <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-200">
-                    {user?.profileImage ? (
-                        <img src={user.profileImage} alt={user?.name || 'User'} className="w-full h-full object-cover" />
-                    ) : (
-                        <img src={ProfilePlaceholder} alt="Profile" className="w-full h-full object-cover" />
-                    )}
+                    <img src={user?.profileImage ? user.profileImage : (isDarkMode ? ProfilePlaceholderDark : ProfilePlaceholder)} alt={user?.name || 'User'} className="w-full h-full object-cover" />
                 </div>
                 <div className="ml-3">
                     <p style={{ color: textPrimary }} className="font-semibold text-s">{user?.name || 'User'}</p>

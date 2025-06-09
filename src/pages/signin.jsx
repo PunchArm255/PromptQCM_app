@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { account } from '../lib/appwrite';
 import Logo from '../assets/icons/logo.svg';
+import LogoDark from '../assets/icons/logoDark.svg';
+import { useDarkMode } from '../lib/DarkModeContext';
 
 export const SignIn = () => {
     const [email, setEmail] = useState('');
@@ -10,6 +12,7 @@ export const SignIn = () => {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const { isDarkMode } = useDarkMode();
 
     // Check if user is already logged in
     useEffect(() => {
@@ -47,7 +50,7 @@ export const SignIn = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="min-h-screen flex flex-col items-center justify-center bg-[#EAEFFB] px-4 font-gotham"
+            className={`min-h-screen flex flex-col items-center justify-center px-4 font-gotham ${isDarkMode ? 'bg-[#181A20]' : 'bg-[#EAEFFB]'}`}
         >
             <motion.div
                 initial={{ y: -20, opacity: 0 }}
@@ -56,7 +59,7 @@ export const SignIn = () => {
                 className="mb-8"
             >
                 <Link to="/">
-                    <img src={Logo} alt="PromptQCM" className="h-16 w-auto" />
+                    <img src={isDarkMode ? LogoDark : Logo} alt="PromptQCM" className="h-16 w-auto" />
                 </Link>
             </motion.div>
 
@@ -64,14 +67,14 @@ export const SignIn = () => {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
-                className="w-full max-w-md bg-[#F5F6FF] rounded-2xl p-8 sm:p-10 shadow-[0_10px_50px_rgba(0,0,0,0.1)] relative overflow-hidden"
+                className={`w-full max-w-md rounded-2xl p-8 sm:p-10 shadow-[0_10px_50px_rgba(0,0,0,0.1)] relative overflow-hidden ${isDarkMode ? 'bg-[#23272F]' : 'bg-[#F5F6FF]'}`}
             >
                 {/* Gradient Glow Background */}
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#00CAC3] rounded-full opacity-10 blur-3xl"></div>
                 <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#AF42F6] rounded-full opacity-10 blur-3xl"></div>
 
-                <h1 className="text-3xl font-bold text-center mb-2 text-[#252525]">Welcome Back!</h1>
-                <p className="text-gray-500 text-center mb-8">Sign in to your account</p>
+                <h1 className={`text-3xl font-bold text-center mb-2 ${isDarkMode ? 'text-white' : 'text-[#252525]'}`}>Welcome Back!</h1>
+                <p className={`text-center mb-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Sign in to your account</p>
 
                 {error && (
                     <motion.div
@@ -85,7 +88,7 @@ export const SignIn = () => {
 
                 <form onSubmit={handleSignIn} className="space-y-5">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">
+                        <label className={`block text-sm font-medium mb-1 ml-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                             Email Address
                         </label>
                         <input
@@ -93,12 +96,12 @@ export const SignIn = () => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="w-full py-3 px-4 bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#AF42F6] focus:border-transparent transition-all"
+                            className={`w-full py-3 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#AF42F6] focus:border-transparent transition-all ${isDarkMode ? 'bg-[#23272F] border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-200'}`}
                             placeholder="Enter your email"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">
+                        <label className={`block text-sm font-medium mb-1 ml-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                             Password
                         </label>
                         <input
@@ -106,7 +109,7 @@ export const SignIn = () => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            className="w-full py-3 px-4 bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#AF42F6] focus:border-transparent transition-all"
+                            className={`w-full py-3 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#AF42F6] focus:border-transparent transition-all ${isDarkMode ? 'bg-[#23272F] border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-200'}`}
                             placeholder="Enter your password"
                         />
                     </div>
@@ -127,7 +130,7 @@ export const SignIn = () => {
                 </form>
 
                 <div className="mt-6 text-center">
-                    <p className="text-gray-600 text-sm">
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         Don't have an account?{' '}
                         <Link
                             to="/signup"

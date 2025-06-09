@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import ProgressModule from './ProgressModule';
 
-const ProgressSection = ({ modules }) => {
+const ProgressSection = ({ modules, onPractice }) => {
     const scrollRef = useRef(null);
     const [activeSlide, setActiveSlide] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
@@ -107,7 +107,7 @@ const ProgressSection = ({ modules }) => {
             >
                 {modules.map((module, index) => (
                     <div key={module.id} className="snap-start">
-                        <ProgressModule module={module} index={index} />
+                        <ProgressModule module={module} index={index} onPractice={onPractice} />
                     </div>
                 ))}
             </div>

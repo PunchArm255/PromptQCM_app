@@ -13,6 +13,7 @@ import { Modules } from './pages/modules';
 import { Reports } from './pages/reports';
 import { Settings } from './pages/settings';
 import { Generate } from './pages/generate';
+import { Upload } from './pages/upload';
 
 // Layout component
 import Layout from './components/Layout';
@@ -39,6 +40,7 @@ export default function App() {
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/generate" element={<Generate />} />
+            <Route path="/upload" element={<Upload />} />
           </Route>
 
           {/* Redirect any unknown routes to home */}

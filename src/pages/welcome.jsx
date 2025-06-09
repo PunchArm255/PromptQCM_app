@@ -2,10 +2,13 @@ import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { account } from '../lib/appwrite';
+import { useDarkMode } from '../lib/DarkModeContext';
 import Logo from '../assets/icons/logo.svg';
+import LogoDark from '../assets/icons/logoDark.svg';
 
 export const Welcome = () => {
     const navigate = useNavigate();
+    const { isDarkMode } = useDarkMode();
 
     // Check if user is already logged in
     useEffect(() => {
@@ -36,20 +39,20 @@ export const Welcome = () => {
                 transition={{ delay: 0.2, duration: 0.5 }}
                 className="mb-8"
             >
-                <img src={Logo} alt="PromptQCM" className="h-24 w-auto" />
+                <img src={isDarkMode ? LogoDark : Logo} alt="PromptQCM" className="h-24 w-auto" />
             </motion.div>
 
             <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
-                className="w-full max-w-md bg-[#F5F6FF] rounded-2xl p-8 sm:p-10 shadow-[0_10px_50px_rgba(0,0,0,0.1)] relative overflow-hidden"
+                className={`w-full max-w-md rounded-2xl p-8 sm:p-10 shadow-[0_10px_50px_rgba(0,0,0,0.1)] relative overflow-hidden ${isDarkMode ? 'bg-[#23272F]' : 'bg-[#F5F6FF]'}`}
             >
                 {/* Gradient Glow Background */}
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#00CAC3] rounded-full opacity-10 blur-3xl"></div>
                 <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#AF42F6] rounded-full opacity-10 blur-3xl"></div>
 
-                <h1 className="text-3xl font-bold text-center mb-6 text-[#252525]">Welcome to PromptQCM</h1>
+                <h1 className={`text-3xl font-bold text-center mb-6 ${isDarkMode ? 'text-white' : 'text-[#252525]'}`}>Welcome to PromptQCM</h1>
 
 
                 <motion.div

@@ -18,6 +18,14 @@ export const DarkModeProvider = ({ children }) => {
         }
     }, []);
 
+    useEffect(() => {
+        if (isDarkMode) {
+            document.body.classList.add('dark');
+        } else {
+            document.body.classList.remove('dark');
+        }
+    }, [isDarkMode]);
+
     const toggleDarkMode = () => {
         const newValue = !isDarkMode;
         setIsDarkMode(newValue);
