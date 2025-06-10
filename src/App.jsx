@@ -4,16 +4,16 @@ import { useState, useEffect } from 'react';
 import { DarkModeProvider } from './lib/DarkModeContext';
 
 // Pages
-import { Welcome } from './pages/welcome';
-import { SignIn } from './pages/signin';
-import { SignUp } from './pages/signup';
-import { Home } from './pages/home';
-import { Library } from './pages/library';
-import { Modules } from './pages/modules';
-import { Reports } from './pages/reports';
-import { Settings } from './pages/settings';
-import { Generate } from './pages/generate';
-import { Upload } from './pages/upload';
+import Welcome from './pages/welcome';
+import SignIn from './pages/signin';
+import SignUp from './pages/signup';
+import Home from './pages/home';
+import Library from './pages/library';
+import Modules from './pages/modules';
+import Reports from './pages/reports';
+import Settings from './pages/settings';
+import Generate from './pages/generate';
+import Upload from './pages/upload';
 
 // Layout component
 import Layout from './components/Layout';

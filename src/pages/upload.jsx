@@ -5,6 +5,7 @@ import { useOutletContext } from 'react-router-dom';
 import Logo from '../assets/icons/logo.svg';
 import { generateQCMWithOpenRouter } from '../lib/openrouter';
 import * as pdfjsLib from 'pdfjs-dist';
+import { getModules, uploadPDF, listPDFs, createQCM } from '../appwrite/api';
 // Fix for Vite/React: set workerSrc manually
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -49,13 +50,17 @@ const Upload = () => {
     const [selectedModuleId, setSelectedModuleId] = useState('');
     const [qcmName, setQcmName] = useState('');
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [pdfList, setPdfList] = useState([]);
+    const [showPdfSelector, setShowPdfSelector] = useState(false);
     const chatEndRef = useRef(null);
 
     useEffect(() => {
-        const storedModules = localStorage.getItem('qcm_modules');
-        if (storedModules) {
-            setModules(JSON.parse(storedModules));
-        }
+        // Fetch modules from Appwrite
+        const fetchModules = async () => {
+            const modRes = await getModules();
+            setModules(modRes.documents || []);
+        };
+        fetchModules();
     }, []);
 
     const handleFileChange = async (e) => {
@@ -65,6 +70,30 @@ const Upload = () => {
         const file = e.target.files[0];
         if (!file) return;
         setPdfFile(file);
+    };
+
+    const handleUploadPDF = async () => {
+        if (!pdfFile) return;
+        setLoading(true);
+        try {
+            await uploadPDF(pdfFile);
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 2000);
+        } catch (err) {
+            setError('Failed to upload PDF.');
+        }
+        setLoading(false);
+    };
+
+    const handleShowPdfSelector = async () => {
+        setShowPdfSelector(true);
+        const res = await listPDFs();
+        setPdfList(res.files || []);
+    };
+
+    const handleSelectExistingPDF = (file) => {
+        setPdfFile(file);
+        setShowPdfSelector(false);
     };
 
     const handleExtractQCM = async () => {
@@ -77,7 +106,13 @@ const Upload = () => {
             return;
         }
         try {
-            const arrayBuffer = await pdfFile.arrayBuffer();
+            let arrayBuffer;
+            if (pdfFile.data) {
+                // Appwrite file object
+                arrayBuffer = await fetch(pdfFile.href).then(res => res.arrayBuffer());
+            } else {
+                arrayBuffer = await pdfFile.arrayBuffer();
+            }
             const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
             let text = '';
             for (let i = 1; i <= pdf.numPages; i++) {
@@ -101,26 +136,23 @@ const Upload = () => {
         setLoading(false);
     };
 
-    const handleSaveQCM = () => {
+    const handleSaveQCM = async () => {
         if (!qcmName.trim() || !selectedModuleId || !qcm) return;
-        const storedModules = localStorage.getItem('qcm_modules');
-        if (!storedModules) return;
-        const modulesArr = JSON.parse(storedModules);
-        const idx = modulesArr.findIndex(m => m.id === parseInt(selectedModuleId));
-        if (idx === -1) return;
-        if (!modulesArr[idx].savedQCMs) modulesArr[idx].savedQCMs = [];
-        modulesArr[idx].savedQCMs.push({
-            id: Date.now(),
-            name: qcmName.trim(),
-            questions: qcm.questions,
-            createdAt: new Date().toISOString(),
-        });
-        localStorage.setItem('qcm_modules', JSON.stringify(modulesArr));
-        setModules(modulesArr);
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 2000);
-        setQcmName('');
-        setSelectedModuleId('');
+        try {
+            await createQCM({
+                moduleId: selectedModuleId,
+                name: qcmName.trim(),
+                questions: JSON.stringify(qcm.questions),
+                createdBy: user?.$id || '',
+                createdAt: new Date().toISOString(),
+            });
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 2000);
+            setQcmName('');
+            setSelectedModuleId('');
+        } catch (err) {
+            setError('Failed to save QCM.');
+        }
     };
 
     return (
@@ -152,7 +184,14 @@ const Upload = () => {
                             className="hidden"
                         />
                     </label>
-                    {pdfFile && <div className="mt-2 text-[#252525] text-sm font-medium">Selected: {pdfFile.name}</div>}
+                    <button
+                        className="mt-2 text-sm text-blue-600 underline"
+                        onClick={handleShowPdfSelector}
+                        type="button"
+                    >
+                        Select from existing PDFs
+                    </button>
+                    {pdfFile && <div className="mt-2 text-[#252525] text-sm font-medium">Selected: {pdfFile.name || pdfFile.filename}</div>}
                     {loading && <div className="mt-4 text-[#AF42F6] font-semibold flex items-center gap-2"><span className="loader border-t-4 border-[#AF42F6] border-solid rounded-full w-6 h-6 animate-spin"></span> Extracting...</div>}
                     <motion.button
                         whileHover={{ scale: 1.03 }}
@@ -164,8 +203,34 @@ const Upload = () => {
                     >
                         Extract QCM
                     </motion.button>
+                    <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={handleUploadPDF}
+                        className="mt-2 py-2 px-5 rounded-lg text-sm font-semibold text-white font-gotham"
+                        style={{ background: 'linear-gradient(to right, #AF42F6, #00CAC3)' }}
+                        disabled={!pdfFile || loading}
+                    >
+                        Upload PDF to Library
+                    </motion.button>
                     {error && <div className="text-red-500 text-center my-2">{error}</div>}
                 </div>
+                {showPdfSelector && (
+                    <div className="bg-white rounded-xl p-4 border border-[#EAEFFB] mb-4 w-full">
+                        <h3 className="font-bold mb-2">Select a PDF from Library</h3>
+                        <ul>
+                            {pdfList.map(file => (
+                                <li key={file.$id} className="flex justify-between items-center py-2 border-b">
+                                    <span>{file.filename}</span>
+                                    <button className="text-blue-600 underline" onClick={() => handleSelectExistingPDF(file)}>
+                                        Select
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                        <button className="mt-2 text-sm text-red-600 underline" onClick={() => setShowPdfSelector(false)}>Cancel</button>
+                    </div>
+                )}
                 {qcm && (
                     <div className="mt-8">
                         <div className="flex items-center justify-between mb-4">
@@ -195,7 +260,7 @@ const Upload = () => {
                             >
                                 <option value="">Select Module</option>
                                 {modules.map(m => (
-                                    <option key={m.id} value={m.id}>{m.name}</option>
+                                    <option key={m.$id} value={m.$id}>{m.name}</option>
                                 ))}
                             </select>
                             <motion.button
@@ -208,7 +273,6 @@ const Upload = () => {
                             >
                                 Save QCM
                             </motion.button>
-                            {saveSuccess && <span className="text-green-600 font-semibold ml-2">Saved!</span>}
                         </form>
                         <div className="bg-white rounded-xl border border-[#EAEFFB] p-4">
                             {qcm.questions.map((q, i) => (
@@ -235,4 +299,4 @@ const Upload = () => {
     );
 };
 
-export { Upload }; 
+export default Upload; 

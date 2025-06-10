@@ -5,6 +5,7 @@ import { FiCalendar, FiTrendingUp, FiClock, FiCheckCircle } from 'react-icons/fi
 import PageHeader from '../components/PageHeader';
 import StatCard from '../components/StatCard';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { getTimeReports, getModules } from '../appwrite/api';
 
 export const Reports = () => {
     const { user } = useOutletContext();
@@ -27,42 +28,45 @@ export const Reports = () => {
     const borderColor = isDarkMode ? "#3D3D3D" : "#E0E7EF";
 
     useEffect(() => {
-        // Load data from localStorage
-        const loadStats = () => {
-            const modules = JSON.parse(localStorage.getItem('qcm_modules') || '[]');
-            const documents = JSON.parse(localStorage.getItem('qcm_documents') || '[]');
+        // Fetch time reports and modules from Appwrite
+        const fetchStats = async () => {
+            const [timeRes, modRes] = await Promise.all([
+                getTimeReports(user?.$id || ''),
+                getModules()
+            ]);
+            const timeReports = timeRes.documents || [];
+            const modules = modRes.documents || [];
 
-            // Calculate total hours based on completed docs (assuming 2 hours per doc)
-            const totalDocs = modules.reduce((total, module) => total + module.completedDocs, 0);
-            const totalHours = totalDocs * 2; // 2 hours per completed doc
+            // Calculate total hours based on timeReports
+            const totalSeconds = timeReports.reduce((total, report) => total + (report.timeSpent || 0), 0);
+            const totalHours = Math.round(totalSeconds / 3600);
 
             // Calculate average progress percentage across all modules
             const totalModulesProgress = modules.length > 0
                 ? modules.reduce((sum, module) => {
-                    return sum + (module.completedDocs / (module.totalDocs || 1));
+                    return sum + ((module.completedDocs || 0) / (module.totalDocs || 1));
                 }, 0) / modules.length
                 : 0;
 
             setTotalStats({
                 hoursSpent: totalHours,
-                modulesProgress: Math.round(totalModulesProgress * 100), // Convert to percentage
-                docsCompleted: totalDocs
+                modulesProgress: Math.round(totalModulesProgress * 100),
+                docsCompleted: modules.reduce((total, module) => total + (module.completedDocs || 0), 0)
             });
 
             // Get top 3 modules by hours spent for the stats cards
             const topModules = [...modules]
-                .sort((a, b) => b.completedDocs - a.completedDocs)
+                .sort((a, b) => (b.completedDocs || 0) - (a.completedDocs || 0))
                 .slice(0, 3)
                 .map(module => ({
                     title: module.name,
-                    hours: module.completedDocs * 2 // 2 hours per doc
+                    hours: (module.completedDocs || 0) * 2 // 2 hours per doc
                 }));
 
             setModuleStats(topModules);
         };
-
-        loadStats();
-    }, [selectedPeriod]); // Recalculate when period changes
+        fetchStats();
+    }, [selectedPeriod, user]);
 
     const handleSearch = (query) => {
         setSearchQuery(query);

@@ -4,6 +4,14 @@ import { useOutletContext } from 'react-router-dom';
 import { FiSettings, FiPlus, FiTrash2, FiX, FiEdit, FiFilter, FiGrid } from 'react-icons/fi';
 import PageHeader from '../components/PageHeader';
 import { useDarkMode } from '../lib/DarkModeContext';
+import {
+    getModules,
+    createModule,
+    updateModule,
+    deleteModule,
+    getEstablishments,
+    createEstablishment,
+} from '../appwrite/api';
 
 export const Modules = () => {
     const { user } = useOutletContext();
@@ -44,62 +52,15 @@ export const Modules = () => {
     const [showConfetti, setShowConfetti] = useState(false);
     const confettiRef = useRef(null);
 
+    // Fetch modules and establishments from Appwrite
     useEffect(() => {
-        // Load establishments from localStorage
-        const storedEstablishments = localStorage.getItem('qcm_establishments');
-        if (storedEstablishments) {
-            setEstablishments(JSON.parse(storedEstablishments));
-        } else {
-            // Initial mock data if none exist
-            const initialEstablishments = [
-                { id: 1, name: 'University of Computer Science' },
-                { id: 2, name: 'Business School' }
-            ];
-            setEstablishments(initialEstablishments);
-            localStorage.setItem('qcm_establishments', JSON.stringify(initialEstablishments));
-        }
-
-        // Load modules from localStorage
-        const storedModules = localStorage.getItem('qcm_modules');
-        if (storedModules) {
-            setModules(JSON.parse(storedModules));
-        } else {
-            // Initial mock data if none exist
-            const initialModules = [
-                {
-                    id: 1,
-                    name: 'Web Development',
-                    description: 'HTML, CSS, JavaScript fundamentals',
-                    type: 'Computer Science',
-                    establishmentId: 1,
-                    completedDocs: 5,
-                    totalDocs: 10,
-                    docs: []
-                },
-                {
-                    id: 2,
-                    name: 'Data Structures',
-                    description: 'Algorithms and data structures',
-                    type: 'Computer Science',
-                    establishmentId: 1,
-                    completedDocs: 3,
-                    totalDocs: 8,
-                    docs: []
-                },
-                {
-                    id: 3,
-                    name: 'Marketing Fundamentals',
-                    description: 'Introduction to marketing concepts',
-                    type: 'Business',
-                    establishmentId: 2,
-                    completedDocs: 2,
-                    totalDocs: 5,
-                    docs: []
-                }
-            ];
-            setModules(initialModules);
-            localStorage.setItem('qcm_modules', JSON.stringify(initialModules));
-        }
+        const fetchData = async () => {
+            const estRes = await getEstablishments();
+            setEstablishments(estRes.documents || []);
+            const modRes = await getModules();
+            setModules(modRes.documents || []);
+        };
+        fetchData();
     }, []);
 
     const handleSearch = (query) => {
@@ -107,59 +68,59 @@ export const Modules = () => {
         console.log('Searching for:', query);
     };
 
-    const addEstablishment = () => {
+    const addEstablishment = async () => {
         if (newEstablishment.trim()) {
-            const newEstablishmentObj = {
-                id: Date.now(),
-                name: newEstablishment
-            };
-
-            const updatedEstablishments = [...establishments, newEstablishmentObj];
-            setEstablishments(updatedEstablishments);
-            localStorage.setItem('qcm_establishments', JSON.stringify(updatedEstablishments));
-
+            const newEst = await createEstablishment({
+                name: newEstablishment,
+                createdBy: user?.$id || '',
+                createdAt: new Date().toISOString(),
+            });
+            setEstablishments((prev) => [...prev, newEst]);
             setNewEstablishment('');
             setIsAddingEstablishment(false);
         }
     };
 
-    const addModule = () => {
-        if (newModule.name.trim() && newModule.description.trim() && newModule.type.trim() && newModule.establishmentId) {
-            const newModuleObj = {
-                id: Date.now(),
+    const addModule = async () => {
+        if (
+            newModule.name.trim() &&
+            newModule.description.trim() &&
+            newModule.type.trim() &&
+            newModule.establishmentId
+        ) {
+            await createModule({
                 name: newModule.name,
                 description: newModule.description,
                 type: newModule.type,
                 establishmentId: newModule.establishmentId,
-                completedDocs: 0,
-                totalDocs: 0,
-                docs: []
-            };
-
-            const updatedModules = [...modules, newModuleObj];
-            setModules(updatedModules);
-            localStorage.setItem('qcm_modules', JSON.stringify(updatedModules));
-
-            // Reset form
+                qcmCounter: 0,
+                savedQCMIds: [],
+                createdBy: user?.$id || '',
+                createdAt: new Date().toISOString(),
+            });
+            // Fetch latest modules from Appwrite
+            const modRes = await getModules();
+            setModules(modRes.documents || []);
             setNewModule({
                 name: '',
                 description: '',
                 type: '',
-                establishmentId: null
+                establishmentId: null,
             });
             setIsAddingModule(false);
         }
     };
 
     const openAddModuleModal = () => {
-        // If there are no establishments, show the add establishment modal first
         if (establishments.length === 0) {
             setIsAddingEstablishment(true);
         } else {
-            // Preselect the first establishment or the currently selected one
-            setNewModule(prev => ({
+            setNewModule((prev) => ({
                 ...prev,
-                establishmentId: selectedEstablishment === 'all' ? establishments[0].id : parseInt(selectedEstablishment)
+                establishmentId:
+                    selectedEstablishment === 'all'
+                        ? establishments[0].$id
+                        : selectedEstablishment,
             }));
             setIsAddingModule(true);
         }
@@ -168,47 +129,62 @@ export const Modules = () => {
     const toggleItemSelection = (type, id) => {
         const itemKey = `${type}-${id}`;
         if (selectedItems.includes(itemKey)) {
-            setSelectedItems(selectedItems.filter(item => item !== itemKey));
+            setSelectedItems(selectedItems.filter((item) => item !== itemKey));
         } else {
             setSelectedItems([...selectedItems, itemKey]);
         }
     };
 
-    const deleteSelectedItems = () => {
+    const deleteSelectedItems = async () => {
         let updatedEstablishments = [...establishments];
         let updatedModules = [...modules];
-
-        // Process deletions
-        selectedItems.forEach(item => {
-            const [type, idStr] = item.split('-');
-            const id = parseInt(idStr);
-
+        for (const item of selectedItems) {
+            const [type, id] = item.split('-');
             if (type === 'establishment') {
-                // Delete establishment
-                updatedEstablishments = updatedEstablishments.filter(est => est.id !== id);
-                // Also delete all modules from this establishment
-                updatedModules = updatedModules.filter(mod => mod.establishmentId !== id);
+                await Promise.all([
+                    // Delete establishment
+                    getEstablishments().then((res) =>
+                        res.documents
+                            .filter((est) => est.$id === id)
+                            .forEach((est) =>
+                                updatedEstablishments.splice(
+                                    updatedEstablishments.findIndex((e) => e.$id === est.$id),
+                                    1
+                                )
+                            )
+                    ),
+                    // Delete all modules from this establishment
+                    getModules().then((res) =>
+                        res.documents
+                            .filter((mod) => mod.establishmentId === id)
+                            .forEach(async (mod) => {
+                                await deleteModule(mod.$id);
+                                updatedModules.splice(
+                                    updatedModules.findIndex((m) => m.$id === mod.$id),
+                                    1
+                                );
+                            })
+                    ),
+                ]);
             } else if (type === 'module') {
-                // Delete module
-                updatedModules = updatedModules.filter(mod => mod.id !== id);
+                await deleteModule(id);
+                updatedModules.splice(
+                    updatedModules.findIndex((m) => m.$id === id),
+                    1
+                );
             }
-        });
-
-        // Update state and localStorage
+        }
         setEstablishments(updatedEstablishments);
         setModules(updatedModules);
-        localStorage.setItem('qcm_establishments', JSON.stringify(updatedEstablishments));
-        localStorage.setItem('qcm_modules', JSON.stringify(updatedModules));
-
-        // Reset selected items and close settings
         setSelectedItems([]);
         setShowSettings(false);
     };
 
     // Filter modules based on selected establishment
-    const filteredModules = selectedEstablishment === 'all'
-        ? modules
-        : modules.filter(module => module.establishmentId === parseInt(selectedEstablishment));
+    const filteredModules =
+        selectedEstablishment === 'all'
+            ? modules
+            : modules.filter((module) => module.establishmentId === selectedEstablishment);
 
     // Animation configs
     const containerVariants = {
@@ -447,29 +423,29 @@ export const Modules = () => {
 
                         {establishments.map((establishment) => (
                             <motion.div
-                                key={establishment.id}
+                                key={establishment.$id}
                                 className="relative"
                                 onClick={() => showSettings
-                                    ? toggleItemSelection('establishment', establishment.id)
-                                    : setSelectedEstablishment(establishment.id.toString())
+                                    ? toggleItemSelection('establishment', establishment.$id)
+                                    : setSelectedEstablishment(establishment.$id)
                                 }
                             >
                                 <motion.button
-                                    whileHover={{ backgroundColor: selectedEstablishment === establishment.id.toString() ? "#F6F8FC" : "#EAEFFB" }}
+                                    whileHover={{ backgroundColor: selectedEstablishment === establishment.$id ? "#F6F8FC" : "#EAEFFB" }}
                                     whileTap={{ scale: 0.97 }}
                                     style={{
-                                        backgroundColor: selectedEstablishment === establishment.id.toString()
+                                        backgroundColor: selectedEstablishment === establishment.$id
                                             ? (isDarkMode ? "#3D3D3D" : "#F6F8FC")
                                             : (isDarkMode ? "#2D2D2D" : "#EAEFFB"),
-                                        color: selectedEstablishment === establishment.id.toString()
+                                        color: selectedEstablishment === establishment.$id
                                             ? "#AF42F6"
                                             : (isDarkMode ? "#E0E0E0" : "#6B7280"),
-                                        borderColor: selectedEstablishment === establishment.id.toString() ? borderColor : "transparent",
+                                        borderColor: selectedEstablishment === establishment.$id ? borderColor : "transparent",
                                         borderWidth: "1px",
-                                        borderStyle: showSettings && selectedItems.includes(`establishment-${establishment.id}`)
+                                        borderStyle: showSettings && selectedItems.includes(`establishment-${establishment.$id}`)
                                             ? 'solid'
-                                            : (selectedEstablishment === establishment.id.toString() ? 'solid' : 'none'),
-                                        borderColor: showSettings && selectedItems.includes(`establishment-${establishment.id}`)
+                                            : (selectedEstablishment === establishment.$id ? 'solid' : 'none'),
+                                        borderColor: showSettings && selectedItems.includes(`establishment-${establishment.$id}`)
                                             ? '#AF42F6'
                                             : borderColor
                                     }}
@@ -502,19 +478,19 @@ export const Modules = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {filteredModules.map((module) => (
                                 <motion.div
-                                    key={module.id}
+                                    key={module.$id}
                                     variants={itemVariants}
                                     whileHover={{ scale: 1.02 }}
                                     style={{
                                         backgroundColor: bgSecondary,
-                                        borderColor: showSettings && selectedItems.includes(`module-${module.id}`)
+                                        borderColor: showSettings && selectedItems.includes(`module-${module.$id}`)
                                             ? '#AF42F6'
                                             : 'transparent',
-                                        borderWidth: showSettings && selectedItems.includes(`module-${module.id}`) ? '2px' : '0'
+                                        borderWidth: showSettings && selectedItems.includes(`module-${module.$id}`) ? '2px' : '0'
                                     }}
                                     className="rounded-xl p-5 shadow-sm cursor-pointer"
                                     onClick={() => showSettings
-                                        ? toggleItemSelection('module', module.id)
+                                        ? toggleItemSelection('module', module.$id)
                                         : handleOpenModule(module)
                                     }
                                 >
@@ -548,7 +524,7 @@ export const Modules = () => {
                                     <div className="mt-4 flex items-center">
                                         <FiGrid size={14} style={{ color: isDarkMode ? "#9CA3AF" : "text-gray-400" }} className="mr-1.5" />
                                         <span style={{ color: isDarkMode ? "#9CA3AF" : "text-gray-500" }} className="text-xs">
-                                            {establishments.find(e => e.id === module.establishmentId)?.name || 'Unknown'}
+                                            {establishments.find(e => e.$id === module.establishmentId)?.name || 'Unknown'}
                                         </span>
                                     </div>
                                 </motion.div>
@@ -712,7 +688,7 @@ export const Modules = () => {
                                 <select
                                     id="establishmentSelect"
                                     value={newModule.establishmentId || ''}
-                                    onChange={(e) => setNewModule({ ...newModule, establishmentId: parseInt(e.target.value) })}
+                                    onChange={(e) => setNewModule({ ...newModule, establishmentId: e.target.value })}
                                     style={{
                                         backgroundColor: bgAccent,
                                         color: textPrimary,
@@ -722,7 +698,7 @@ export const Modules = () => {
                                 >
                                     <option value="">Select an establishment</option>
                                     {establishments.map(establishment => (
-                                        <option key={establishment.id} value={establishment.id}>
+                                        <option key={establishment.$id} value={establishment.$id}>
                                             {establishment.name}
                                         </option>
                                     ))}

@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 import '../styles/global.css';
 import { useDarkMode } from '../lib/DarkModeContext';
 import { AnimatePresence } from 'framer-motion';
-import { useRef } from 'react';
 
 // Components
 import PageHeader from '../components/PageHeader';
@@ -12,6 +11,7 @@ import QuickActions from '../components/QuickActions';
 import ProgressSection from '../components/ProgressSection';
 import ReportCard from '../components/ReportCard';
 import RecentsCard from '../components/RecentsCard';
+import { getModules } from '../appwrite/api';
 
 export const Home = () => {
     const { user, greeting } = useOutletContext();
@@ -38,23 +38,14 @@ export const Home = () => {
     const borderColor = isDarkMode ? "#3D3D3D" : "#E0E7EF";
 
     useEffect(() => {
-        // Load documents from localStorage
-        const storedDocs = localStorage.getItem('qcm_documents');
-        if (storedDocs) {
-            const docs = JSON.parse(storedDocs);
-            // Sort by last accessed and get the most recent 3
-            const sortedDocs = [...docs].sort((a, b) => b.lastAccessed - a.lastAccessed).slice(0, 3);
-            setRecentDocuments(sortedDocs);
-        }
-
-        // Load modules from localStorage
-        const storedModules = localStorage.getItem('qcm_modules');
-        if (storedModules) {
-            const modules = JSON.parse(storedModules);
+        // Fetch modules from Appwrite
+        const fetchModules = async () => {
+            const modRes = await getModules();
+            const modules = modRes.documents || [];
             // Sort by progress percentage (descending)
             const sortedModules = [...modules].sort((a, b) => {
-                const progressA = a.completedDocs / (a.totalDocs || 1);
-                const progressB = b.completedDocs / (b.totalDocs || 1);
+                const progressA = (a.completedDocs || 0) / ((a.totalDocs || 1));
+                const progressB = (b.completedDocs || 0) / ((b.totalDocs || 1));
                 return progressB - progressA;
             }).slice(0, 4); // Limit to 4 modules
             setProgressModules(sortedModules);
@@ -62,51 +53,11 @@ export const Home = () => {
             // Update report data based on module data
             const reportModules = sortedModules.slice(0, 3).map(module => ({
                 title: module.name,
-                hours: Math.round(module.completedDocs * 2) // Assuming 2 hours per completed doc
+                hours: Math.round((module.completedDocs || 0) * 2) // Assuming 2 hours per completed doc
             }));
             setReportData(reportModules);
-        } else {
-            // Set default modules if none exist
-            const defaultModules = [
-                {
-                    id: 1,
-                    name: 'Technologie du Web',
-                    description: 'This module contains stuff about HTML/CSS.',
-                    completedDocs: 5,
-                    totalDocs: 10,
-                },
-                {
-                    id: 2,
-                    name: 'C++',
-                    description: 'This module contains stuff about C++.',
-                    completedDocs: 2,
-                    totalDocs: 10,
-                },
-                {
-                    id: 3,
-                    name: 'Java',
-                    description: 'This module contains stuff about Java.',
-                    completedDocs: 2,
-                    totalDocs: 10,
-                },
-                {
-                    id: 4,
-                    name: 'System',
-                    description: 'This module contains stuff about system.',
-                    completedDocs: 3,
-                    totalDocs: 10,
-                },
-            ];
-            setProgressModules(defaultModules);
-
-            // Default report data
-            const defaultReportData = [
-                { title: 'Technologie du Web', hours: 18 },
-                { title: 'C++', hours: 10 },
-                { title: 'Java', hours: 12 },
-            ];
-            setReportData(defaultReportData);
-        }
+        };
+        fetchModules();
     }, []);
 
     const handleSearch = (query) => {

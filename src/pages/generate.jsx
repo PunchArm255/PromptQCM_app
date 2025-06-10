@@ -5,6 +5,7 @@ import 'jspdf-autotable';
 import { useOutletContext } from 'react-router-dom';
 import Logo from '../assets/icons/logo.svg';
 import { generateQCMWithOpenRouter } from '../lib/openrouter';
+import { getModules, createQCM } from '../appwrite/api';
 
 const examplePrompt = `Write QCM about Python basics, 5 questions, difficulty: easy, code snippets: yes. Format: Numbered questions, each with 4 options (A-D), and indicate the correct answer at the end of each question as 'Answer: X'.`;
 
@@ -75,11 +76,12 @@ const Generate = () => {
     const chatEndRef = useRef(null);
 
     useEffect(() => {
-        // Load modules from localStorage
-        const storedModules = localStorage.getItem('qcm_modules');
-        if (storedModules) {
-            setModules(JSON.parse(storedModules));
-        }
+        // Fetch modules from Appwrite
+        const fetchModules = async () => {
+            const modRes = await getModules();
+            setModules(modRes.documents || []);
+        };
+        fetchModules();
     }, []);
 
     const scrollToBottom = () => {
@@ -162,26 +164,23 @@ const Generate = () => {
         doc.save('qcm.pdf');
     };
 
-    const handleSaveQCM = () => {
+    const handleSaveQCM = async () => {
         if (!qcmName.trim() || !selectedModuleId || !qcm) return;
-        const storedModules = localStorage.getItem('qcm_modules');
-        if (!storedModules) return;
-        const modulesArr = JSON.parse(storedModules);
-        const idx = modulesArr.findIndex(m => m.id === parseInt(selectedModuleId));
-        if (idx === -1) return;
-        if (!modulesArr[idx].savedQCMs) modulesArr[idx].savedQCMs = [];
-        modulesArr[idx].savedQCMs.push({
-            id: Date.now(),
-            name: qcmName.trim(),
-            questions: qcm.questions,
-            createdAt: new Date().toISOString(),
-        });
-        localStorage.setItem('qcm_modules', JSON.stringify(modulesArr));
-        setModules(modulesArr);
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 2000);
-        setQcmName('');
-        setSelectedModuleId('');
+        try {
+            await createQCM({
+                moduleId: selectedModuleId,
+                name: qcmName.trim(),
+                questions: JSON.stringify(qcm.questions),
+                createdBy: user?.$id || '',
+                createdAt: new Date().toISOString(),
+            });
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 2000);
+            setQcmName('');
+            setSelectedModuleId('');
+        } catch (err) {
+            setError('Failed to save QCM.');
+        }
     };
 
     return (
@@ -271,7 +270,7 @@ const Generate = () => {
                             >
                                 <option value="">Select Module</option>
                                 {modules.map(m => (
-                                    <option key={m.id} value={m.id}>{m.name}</option>
+                                    <option key={m.$id} value={m.$id}>{m.name}</option>
                                 ))}
                             </select>
                             <motion.button
@@ -314,4 +313,4 @@ const Generate = () => {
     );
 };
 
-export { Generate }; 
+export default Generate; 
