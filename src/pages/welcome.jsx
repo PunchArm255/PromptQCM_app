@@ -66,7 +66,7 @@ export const Welcome = () => {
                                 background: "linear-gradient(to right, #00CAC3, #AF42F6)"
                             }}
                         >
-                            Continue
+                            Continue with Email
                         </button>
                     </Link>
                 </motion.div>
