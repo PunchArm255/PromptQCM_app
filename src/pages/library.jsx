@@ -5,6 +5,7 @@ import { FiSettings, FiTrash2, FiX } from 'react-icons/fi';
 import PageHeader from '../components/PageHeader';
 import { useDarkMode } from '../lib/DarkModeContext';
 import { listPDFs, uploadPDF } from '../appwrite/api';
+import DocumentCard from '../components/DocumentCard';
 
 const Library = () => {
     const { user } = useOutletContext();
@@ -42,8 +43,10 @@ const Library = () => {
         console.log('Searching for:', query);
     };
 
-    const handleDocumentClick = (docId) => {
-        // No-op for now, could implement preview/download
+    const handleDocumentClick = (doc) => {
+        // Download the PDF file from Appwrite
+        const url = `https://cloud.appwrite.io/v1/storage/buckets/6848ae770021afb8740c/files/${doc.$id}/view?project=67fd12b0003328d94b7d`;
+        window.open(url, '_blank');
     };
 
     const toggleDocSelection = (docId) => {
@@ -195,15 +198,15 @@ const Library = () => {
                         {sortedDocuments.length === 0 ? (
                             <div className="text-gray-500 col-span-full text-center py-8">No PDFs found in the library.</div>
                         ) : (
-                            sortedDocuments.map(doc => (
-                                <div key={doc.$id} className="border rounded-lg p-4 flex flex-col items-center justify-center bg-white shadow">
-                                    <div className="font-semibold mb-2">{doc.filename}</div>
-                                    <button
-                                        className="text-blue-600 underline text-sm"
-                                        onClick={() => handleDocumentClick(doc.$id)}
-                                    >
-                                        View / Download
-                                    </button>
+                            sortedDocuments.map((doc, index) => (
+                                <div key={doc.$id || doc.id} className="cursor-pointer" onClick={() => handleDocumentClick(doc)}>
+                                    <DocumentCard
+                                        document={{
+                                            name: doc.filename || doc.name,
+                                            date: doc.date || (doc.$createdAt ? new Date(doc.$createdAt).toLocaleDateString() : ''),
+                                        }}
+                                        index={index}
+                                    />
                                 </div>
                             ))
                         )}

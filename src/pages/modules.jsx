@@ -71,9 +71,7 @@ export const Modules = () => {
     const addEstablishment = async () => {
         if (newEstablishment.trim()) {
             const newEst = await createEstablishment({
-                name: newEstablishment,
-                createdBy: user?.$id || '',
-                createdAt: new Date().toISOString(),
+                name: newEstablishment
             });
             setEstablishments((prev) => [...prev, newEst]);
             setNewEstablishment('');
@@ -92,11 +90,7 @@ export const Modules = () => {
                 name: newModule.name,
                 description: newModule.description,
                 type: newModule.type,
-                establishmentId: newModule.establishmentId,
-                qcmCounter: 0,
-                savedQCMIds: [],
-                createdBy: user?.$id || '',
-                createdAt: new Date().toISOString(),
+                establishmentId: newModule.establishmentId
             });
             // Fetch latest modules from Appwrite
             const modRes = await getModules();
