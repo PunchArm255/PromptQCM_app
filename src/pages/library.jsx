@@ -4,10 +4,10 @@ import { useOutletContext } from 'react-router-dom';
 import { FiSettings, FiTrash2, FiX } from 'react-icons/fi';
 import PageHeader from '../components/PageHeader';
 import { useDarkMode } from '../lib/DarkModeContext';
-import { listPDFs, uploadPDF } from '../appwrite/api';
+import { getUserPDFs, uploadPDF, deletePDF } from '../lib/appwriteService';
 import DocumentCard from '../components/DocumentCard';
 
-const Library = () => {
+export const Library = () => {
     const { user } = useOutletContext();
     const { isDarkMode } = useDarkMode();
     const [searchQuery, setSearchQuery] = useState('');
@@ -29,14 +29,29 @@ const Library = () => {
     useEffect(() => {
         // Fetch PDFs from Appwrite Storage
         const fetchPDFs = async () => {
-            const res = await listPDFs();
-            setDocuments(res.files || []);
+            try {
+                console.log("Fetching PDFs...");
+                const pdfs = await getUserPDFs();
+                console.log("Fetched PDFs:", pdfs);
+
+                if (pdfs && pdfs.length > 0) {
+                    setDocuments(pdfs);
+                } else {
+                    setDocuments([]);
+                }
+            } catch (error) {
+                console.error("Error fetching PDFs:", error);
+                setDocuments([]);
+            }
         };
+
         fetchPDFs();
     }, []);
 
-    // Sort documents by last accessed time (if available)
-    const sortedDocuments = [...documents];
+    // Sort documents by creation date (if available)
+    const sortedDocuments = [...documents].sort((a, b) =>
+        new Date(b.$createdAt || 0) - new Date(a.$createdAt || 0)
+    );
 
     const handleSearch = (query) => {
         setSearchQuery(query);
@@ -44,8 +59,11 @@ const Library = () => {
     };
 
     const handleDocumentClick = (doc) => {
-        // Download the PDF file from Appwrite
+        console.log("Opening document:", doc);
+
+        // Generate the file URL and open it
         const url = `https://cloud.appwrite.io/v1/storage/buckets/6848ae770021afb8740c/files/${doc.$id}/view?project=67fd12b0003328d94b7d`;
+        console.log("Opening URL:", url);
         window.open(url, '_blank');
     };
 
@@ -57,11 +75,25 @@ const Library = () => {
         }
     };
 
-    const deleteSelectedDocs = () => {
-        const updatedDocs = documents.filter(doc => !selectedDocs.includes(doc.$id));
-        setDocuments(updatedDocs);
-        setSelectedDocs([]);
-        setShowSettings(false);
+    const deleteSelectedDocs = async () => {
+        try {
+            console.log("Deleting selected documents:", selectedDocs);
+
+            for (const docId of selectedDocs) {
+                console.log("Deleting document ID:", docId);
+                await deletePDF(docId);
+            }
+
+            // Refresh document list
+            console.log("Refreshing document list after deletion...");
+            const pdfs = await getUserPDFs();
+            setDocuments(pdfs || []);
+
+            setSelectedDocs([]);
+            setShowSettings(false);
+        } catch (error) {
+            console.error("Error deleting documents:", error);
+        }
     };
 
     const handleUploadClick = () => {
@@ -72,16 +104,33 @@ const Library = () => {
         setUploadError('');
         const file = e.target.files[0];
         if (!file) return;
+
+        console.log("File selected for upload:", file.name);
         setUploading(true);
+
         try {
+            console.log("Starting upload...");
+            // Upload PDF to Appwrite
             await uploadPDF(file);
+            console.log("Upload successful");
+
             // Refresh document list
-            const res = await listPDFs();
-            setDocuments(res.files || []);
+            console.log("Refreshing document list...");
+            const pdfs = await getUserPDFs();
+            console.log("Refreshed PDFs:", pdfs);
+
+            setDocuments(pdfs || []);
+
+            // Reset file input
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
         } catch (err) {
-            setUploadError('Failed to upload PDF.');
+            console.error("Upload error:", err);
+            setUploadError('Failed to upload PDF. Please try again.');
+        } finally {
+            setUploading(false);
         }
-        setUploading(false);
     };
 
     // Animation configs
@@ -199,14 +248,25 @@ const Library = () => {
                             <div className="text-gray-500 col-span-full text-center py-8">No PDFs found in the library.</div>
                         ) : (
                             sortedDocuments.map((doc, index) => (
-                                <div key={doc.$id || doc.id} className="cursor-pointer" onClick={() => handleDocumentClick(doc)}>
-                                    <DocumentCard
-                                        document={{
-                                            name: doc.filename || doc.name,
-                                            date: doc.date || (doc.$createdAt ? new Date(doc.$createdAt).toLocaleDateString() : ''),
-                                        }}
-                                        index={index}
-                                    />
+                                <div key={doc.$id} className="relative">
+                                    {showSettings && (
+                                        <div className="absolute top-2 right-2 z-10">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedDocs.includes(doc.$id)}
+                                                onChange={() => toggleDocSelection(doc.$id)}
+                                                className="w-4 h-4 accent-[#AF42F6]"
+                                            />
+                                        </div>
+                                    )}
+                                    <div onClick={() => !showSettings && handleDocumentClick(doc)}>
+                                        <DocumentCard
+                                            document={doc}
+                                            index={index}
+                                            isSelected={selectedDocs.includes(doc.$id)}
+                                            onClick={showSettings ? () => toggleDocSelection(doc.$id) : null}
+                                        />
+                                    </div>
                                 </div>
                             ))
                         )}
@@ -244,5 +304,3 @@ const Library = () => {
         </motion.div>
     );
 };
-
-export default Library;

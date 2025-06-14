@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, useAnimation } from 'framer-motion';
-import { useOutletContext } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import '../styles/global.css';
 import { useDarkMode } from '../lib/DarkModeContext';
-import { AnimatePresence } from 'framer-motion';
 
 // Components
 import PageHeader from '../components/PageHeader';
@@ -11,23 +10,16 @@ import QuickActions from '../components/QuickActions';
 import ProgressSection from '../components/ProgressSection';
 import ReportCard from '../components/ReportCard';
 import RecentsCard from '../components/RecentsCard';
-import { getModules } from '../appwrite/api';
+import { getUserModules, getUserPDFs, getTotalTimeSpent, getModuleTimeTracking } from '../lib/appwriteService';
 
 export const Home = () => {
     const { user, greeting } = useOutletContext();
     const { isDarkMode } = useDarkMode();
+    const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [recentDocuments, setRecentDocuments] = useState([]);
     const [progressModules, setProgressModules] = useState([]);
     const [reportData, setReportData] = useState([]);
-    const [activeModule, setActiveModule] = useState(null);
-    const [showQcmModal, setShowQcmModal] = useState(false);
-    const [activeQcm, setActiveQcm] = useState(null);
-    const [userAnswers, setUserAnswers] = useState([]);
-    const [showScore, setShowScore] = useState(false);
-    const [score, setScore] = useState(0);
-    const [showConfetti, setShowConfetti] = useState(false);
-    const confettiRef = useRef(null);
 
     // Background colors based on dark mode
     const bgPrimary = isDarkMode ? "#1E1E1E" : "#F5F6FF";
@@ -38,26 +30,80 @@ export const Home = () => {
     const borderColor = isDarkMode ? "#3D3D3D" : "#E0E7EF";
 
     useEffect(() => {
-        // Fetch modules from Appwrite
-        const fetchModules = async () => {
-            const modRes = await getModules();
-            const modules = modRes.documents || [];
-            // Sort by progress percentage (descending)
-            const sortedModules = [...modules].sort((a, b) => {
-                const progressA = (a.completedDocs || 0) / ((a.totalDocs || 1));
-                const progressB = (b.completedDocs || 0) / ((b.totalDocs || 1));
-                return progressB - progressA;
-            }).slice(0, 4); // Limit to 4 modules
-            setProgressModules(sortedModules);
+        // Fetch modules and recent documents from Appwrite
+        const fetchData = async () => {
+            try {
+                // Fetch modules
+                const modules = await getUserModules();
 
-            // Update report data based on module data
-            const reportModules = sortedModules.slice(0, 3).map(module => ({
-                title: module.name,
-                hours: Math.round((module.completedDocs || 0) * 2) // Assuming 2 hours per completed doc
-            }));
-            setReportData(reportModules);
+                // Sort by progress percentage (descending)
+                const sortedModules = [...modules].sort((a, b) => {
+                    const progressA = (a.completedQcms || 0) / ((a.qcmCount || 1));
+                    const progressB = (b.completedQcms || 0) / ((b.qcmCount || 1));
+                    return progressB - progressA;
+                }).slice(0, 4); // Limit to 4 modules
+
+                setProgressModules(sortedModules);
+
+                // Get total time spent
+                const totalMinutes = await getTotalTimeSpent();
+
+                // Format time display (minutes until 59, then hours)
+                let timeDisplay;
+                if (totalMinutes < 60) {
+                    timeDisplay = `${totalMinutes}m`;
+                } else {
+                    const hours = Math.floor(totalMinutes / 60);
+                    timeDisplay = `${hours}h`;
+                }
+
+                // Get module time tracking data for top modules
+                const moduleTimePromises = sortedModules.slice(0, 3).map(async (module) => {
+                    const timeData = await getModuleTimeTracking(module.$id);
+                    const totalModuleMinutes = timeData.reduce((sum, record) => sum + record.minutes, 0);
+
+                    // Format time display
+                    let moduleTimeDisplay;
+                    if (totalModuleMinutes < 60) {
+                        moduleTimeDisplay = `${totalModuleMinutes}m`;
+                    } else {
+                        const hours = Math.floor(totalModuleMinutes / 60);
+                        moduleTimeDisplay = `${hours}h`;
+                    }
+
+                    return {
+                        title: module.name,
+                        hours: Math.floor(totalModuleMinutes / 60),
+                        minutes: totalModuleMinutes % 60,
+                        timeDisplay: moduleTimeDisplay
+                    };
+                });
+
+                const moduleTimeData = await Promise.all(moduleTimePromises);
+
+                // Sort by time spent
+                const sortedModuleStats = moduleTimeData.sort((a, b) =>
+                    (b.hours * 60 + b.minutes) - (a.hours * 60 + a.minutes)
+                );
+
+                // Update report data with actual time tracking data
+                setReportData(sortedModuleStats);
+
+                // Fetch recent documents (PDFs)
+                const pdfs = await getUserPDFs();
+
+                // Sort by creation date (newest first)
+                const sortedPDFs = [...pdfs].sort((a, b) =>
+                    new Date(b.$createdAt || 0) - new Date(a.$createdAt || 0)
+                ).slice(0, 3); // Limit to 3 recent documents
+
+                setRecentDocuments(sortedPDFs);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
         };
-        fetchModules();
+
+        fetchData();
     }, []);
 
     const handleSearch = (query) => {
@@ -67,84 +113,8 @@ export const Home = () => {
     };
 
     const handlePractice = (module) => {
-        setActiveModule(module);
-        setShowQcmModal(true);
-        setActiveQcm(null);
-        setUserAnswers([]);
-        setShowScore(false);
-        setScore(0);
-        setShowConfetti(false);
-    };
-
-    const handleCloseQcmModal = () => {
-        setShowQcmModal(false);
-        setActiveModule(null);
-        setActiveQcm(null);
-        setUserAnswers([]);
-        setShowScore(false);
-        setScore(0);
-        setShowConfetti(false);
-    };
-
-    const handleOpenQcm = (qcm) => {
-        setActiveQcm(qcm);
-        setUserAnswers(Array(qcm.questions.length).fill(''));
-        setShowScore(false);
-        setScore(0);
-        setShowConfetti(false);
-    };
-
-    const handleAnswerChange = (idx, val) => {
-        setUserAnswers(ans => {
-            const copy = [...ans];
-            copy[idx] = val;
-            return copy;
-        });
-    };
-
-    const handleSubmitQcm = () => {
-        if (!activeQcm) return;
-        let correct = 0;
-        activeQcm.questions.forEach((q, i) => {
-            if (userAnswers[i] && q.answer && userAnswers[i].toUpperCase() === q.answer.toUpperCase()) correct++;
-        });
-        setScore(correct);
-        setShowScore(true);
-        if (correct === activeQcm.questions.length) {
-            setShowConfetti(true);
-            if (confettiRef.current) {
-                import('canvas-confetti').then(confetti => {
-                    confetti.default({
-                        particleCount: 120,
-                        spread: 90,
-                        origin: { y: 0.6 }
-                    });
-                });
-            }
-            setTimeout(() => setShowConfetti(false), 2000);
-        }
-        // Mark as completed in localStorage
-        const storedModules = localStorage.getItem('qcm_modules');
-        if (storedModules) {
-            const modulesArr = JSON.parse(storedModules);
-            const idx = modulesArr.findIndex(m => m.id === activeModule.id);
-            if (idx !== -1) {
-                if (!modulesArr[idx].completedQCMs) modulesArr[idx].completedQCMs = [];
-                if (!modulesArr[idx].completedQCMs.includes(activeQcm.id)) {
-                    modulesArr[idx].completedQCMs.push(activeQcm.id);
-                    // Update completedDocs, max 10
-                    modulesArr[idx].completedDocs = Math.min((modulesArr[idx].completedQCMs?.length || 0), 10);
-                    localStorage.setItem('qcm_modules', JSON.stringify(modulesArr));
-                }
-            }
-        }
-    };
-
-    const handleRetry = () => {
-        setUserAnswers(Array(activeQcm.questions.length).fill(''));
-        setShowScore(false);
-        setScore(0);
-        setShowConfetti(false);
+        // Navigate to modules page with the selected module ID
+        navigate('/modules', { state: { selectedModuleId: module.$id } });
     };
 
     // Animation configs
@@ -208,126 +178,8 @@ export const Home = () => {
                 />
 
                 {/* Recents Section */}
-                <RecentsCard
-                    documents={recentDocuments}
-                    isDarkMode={isDarkMode}
-                    bgColor={bgSecondary}
-                    textColor={textPrimary}
-                    textSecondary={textSecondary}
-                />
+                <RecentsCard documents={recentDocuments} />
             </motion.div>
-
-            {/* QCM Modal (copied/adapted from modules.jsx) */}
-            <AnimatePresence>
-                {showQcmModal && activeModule && (
-                    <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 bg-black bg-opacity-30">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 20 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 500 }}
-                            style={{ backgroundColor: bgSecondary }}
-                            className="rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-[#EAEFFB]"
-                            ref={confettiRef}
-                        >
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 style={{ color: textPrimary }} className="text-xl font-bold">{activeModule.name} - Practice QCMs</h3>
-                                <button onClick={handleCloseQcmModal} className="text-[#AF42F6] font-bold text-lg">&times;</button>
-                            </div>
-                            {!activeQcm ? (
-                                <div>
-                                    {activeModule.savedQCMs && activeModule.savedQCMs.length > 0 ? (
-                                        <ul className="divide-y divide-[#EAEFFB]">
-                                            {activeModule.savedQCMs.map(qcm => (
-                                                <li key={qcm.id} className="py-3 flex justify-between items-center">
-                                                    <span className="font-semibold text-[#252525]">{qcm.name}</span>
-                                                    <button
-                                                        className="py-1 px-3 rounded-lg text-sm font-semibold text-white ml-2 shadow"
-                                                        style={{ background: 'linear-gradient(to right, #00CAC3, #AF42F6)' }}
-                                                        onClick={() => handleOpenQcm(qcm)}
-                                                    >
-                                                        Practice
-                                                    </button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <div className="text-gray-500 text-center py-8">No saved QCMs for this module.</div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="bg-[#F5F6FF] rounded-xl p-6 border border-[#EAEFFB] shadow mb-4">
-                                    <h4 className="text-lg font-bold mb-4 text-[#252525]">{activeQcm.name}</h4>
-                                    <form onSubmit={e => { e.preventDefault(); handleSubmitQcm(); }}>
-                                        {activeQcm.questions.map((q, i) => (
-                                            <div key={i} className="mb-6">
-                                                <div className="font-semibold mb-2">{i + 1}. {q.question}</div>
-                                                <ul className="mb-2">
-                                                    {q.options.map((opt, j) => {
-                                                        const letter = String.fromCharCode(65 + j);
-                                                        let highlight = '';
-                                                        if (showScore && userAnswers[i] === letter && letter === q.answer) {
-                                                            highlight = 'bg-green-100 border-green-500 text-green-700';
-                                                        }
-                                                        return (
-                                                            <li key={j} className={`pl-2 py-1 flex items-center ${highlight} border rounded-lg mb-1 transition-all duration-200`}>
-                                                                <label className="inline-flex items-center cursor-pointer w-full">
-                                                                    <input
-                                                                        type="radio"
-                                                                        name={`qcm-q${i}`}
-                                                                        value={letter}
-                                                                        checked={userAnswers[i] === letter}
-                                                                        onChange={() => handleAnswerChange(i, letter)}
-                                                                        className="form-radio text-[#AF42F6] mr-2"
-                                                                        disabled={showScore}
-                                                                    />
-                                                                    <span className="ml-1">{letter}) {opt}</span>
-                                                                </label>
-                                                            </li>
-                                                        );
-                                                    })}
-                                                </ul>
-                                            </div>
-                                        ))}
-                                        {!showScore && (
-                                            <motion.button
-                                                whileHover={{ scale: 1.03 }}
-                                                whileTap={{ scale: 0.97 }}
-                                                type="submit"
-                                                className="py-2 px-5 rounded-lg text-sm font-semibold text-white font-gotham shadow"
-                                                style={{ background: 'linear-gradient(to right, #00CAC3, #AF42F6)' }}
-                                            >
-                                                Submit Answers
-                                            </motion.button>
-                                        )}
-                                        {showScore && (
-                                            <div className="mt-4 text-center">
-                                                <div className="text-xl font-bold text-[#00CAC3] mb-2">Score: {score} / {activeQcm.questions.length}</div>
-                                                <button
-                                                    className="mt-2 py-1 px-4 rounded-lg text-sm font-semibold text-white mr-2 shadow"
-                                                    style={{ background: 'linear-gradient(to right, #AF42F6, #00CAC3)' }}
-                                                    onClick={handleRetry}
-                                                    type="button"
-                                                >
-                                                    Retry
-                                                </button>
-                                                <button
-                                                    className="mt-2 py-1 px-4 rounded-lg text-sm font-semibold text-white shadow"
-                                                    style={{ background: 'linear-gradient(to right, #00CAC3, #AF42F6)' }}
-                                                    onClick={() => { setActiveQcm(null); setShowScore(false); }}
-                                                    type="button"
-                                                >
-                                                    Back to QCMs
-                                                </button>
-                                            </div>
-                                        )}
-                                    </form>
-                                </div>
-                            )}
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
         </motion.div>
     );
 };

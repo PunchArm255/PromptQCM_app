@@ -88,7 +88,7 @@ const StatCard = ({
                             backgroundClip: 'text'
                         }}
                     >
-                        {item.hours}h
+                        {item.timeDisplay || `${item.hours}h`}
                     </span>
                 </motion.div>
             </div>

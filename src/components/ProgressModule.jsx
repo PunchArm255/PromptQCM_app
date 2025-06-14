@@ -10,6 +10,16 @@ const ProgressModule = ({ module, index, onPractice }) => {
         }
     };
 
+    // Calculate completion based on a fixed denominator of 10
+    const completedDocs = module.completedQcms || 0;
+
+    // For display purposes, show completed QCMs out of 10
+    const displayTotal = 10;
+
+    // Calculate progress percentage based on actual QCM count for the progress bar
+    const totalQcms = module.qcmCount || 1;
+    const progressPercentage = Math.min((completedDocs / totalQcms) * 100, 100);
+
     return (
         <motion.div
             key={module.id}
@@ -20,19 +30,20 @@ const ProgressModule = ({ module, index, onPractice }) => {
             <h3 className="font-bold text-lg sm:text-xl mb-2 truncate">{module.name}</h3>
             <p className="text-gray-500 text-xs sm:text-sm mb-3 sm:mb-5 line-clamp-2">{module.description}</p>
             <div className="mt-auto">
-                <div className="flex justify-between text-xs sm:text-sm mb-2">
-                    <span className="font-semibold text-[#AF42F6]">{module.completedDocs}/{module.totalDocs}</span>
+                <div className="flex items-center mt-3">
+                    <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                        <div
+                            className="h-full rounded-full"
+                            style={{
+                                width: `${progressPercentage}%`,
+                                background: 'linear-gradient(to right, #00CAC3, #AF42F6)'
+                            }}
+                        ></div>
+                    </div>
+                    <span className="ml-2 text-xs text-gray-500">
+                        {completedDocs}/{displayTotal}
+                    </span>
                 </div>
-                <motion.div
-                    className="h-2 sm:h-2.5 w-full bg-[#EAEFFB] rounded-full overflow-hidden"
-                >
-                    <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(module.completedDocs / (module.totalDocs || 1)) * 100}%` }}
-                        transition={{ duration: 1, ease: "easeOut", delay: 0.5 + (index * 0.2) }}
-                        className="h-full rounded-full bg-gradient-to-r from-[#00CAC3] to-[#AF42F6]"
-                    />
-                </motion.div>
             </div>
         </motion.div>
     );

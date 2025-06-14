@@ -23,6 +23,13 @@ const RecentsCard = ({ documents }) => {
         }
     };
 
+    const handleDocumentClick = (doc) => {
+        // Open the PDF file in a new tab
+        if (doc.fileUrl) {
+            window.open(doc.fileUrl, '_blank');
+        }
+    };
+
     return (
         <motion.div
             variants={cardVariants}
@@ -45,9 +52,15 @@ const RecentsCard = ({ documents }) => {
                 animate="visible"
                 className="space-y-4"
             >
-                {documents.map((doc, index) => (
-                    <DocumentCard key={doc.id} document={doc} index={index} />
-                ))}
+                {documents.length === 0 ? (
+                    <p className="text-gray-500 text-center py-4">No recent documents</p>
+                ) : (
+                    documents.map((doc, index) => (
+                        <div key={doc.$id} onClick={() => handleDocumentClick(doc)}>
+                            <DocumentCard document={doc} index={index} />
+                        </div>
+                    ))
+                )}
             </motion.div>
         </motion.div>
     );

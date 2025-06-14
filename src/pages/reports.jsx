@@ -5,7 +5,7 @@ import { FiCalendar, FiTrendingUp, FiClock, FiCheckCircle } from 'react-icons/fi
 import PageHeader from '../components/PageHeader';
 import StatCard from '../components/StatCard';
 import { useDarkMode } from '../lib/DarkModeContext';
-import { getTimeReports, getModules } from '../appwrite/api';
+import { getUserModules, getModuleTimeTracking, getTotalTimeSpent } from '../lib/appwriteService';
 
 export const Reports = () => {
     const { user } = useOutletContext();
@@ -28,45 +28,82 @@ export const Reports = () => {
     const borderColor = isDarkMode ? "#3D3D3D" : "#E0E7EF";
 
     useEffect(() => {
-        // Fetch time reports and modules from Appwrite
-        const fetchStats = async () => {
-            const [timeRes, modRes] = await Promise.all([
-                getTimeReports(user?.$id || ''),
-                getModules()
-            ]);
-            const timeReports = timeRes.documents || [];
-            const modules = modRes.documents || [];
+        // Load data from Appwrite
+        const loadStats = async () => {
+            try {
+                // Get all modules
+                const modules = await getUserModules();
 
-            // Calculate total hours based on timeReports
-            const totalSeconds = timeReports.reduce((total, report) => total + (report.timeSpent || 0), 0);
-            const totalHours = Math.round(totalSeconds / 3600);
+                // Get total time spent
+                const totalMinutes = await getTotalTimeSpent();
 
-            // Calculate average progress percentage across all modules
-            const totalModulesProgress = modules.length > 0
-                ? modules.reduce((sum, module) => {
-                    return sum + ((module.completedDocs || 0) / (module.totalDocs || 1));
-                }, 0) / modules.length
-                : 0;
+                // Format time display (minutes until 59, then hours)
+                let timeDisplay;
+                if (totalMinutes < 60) {
+                    timeDisplay = `${totalMinutes}m`;
+                } else {
+                    const hours = Math.floor(totalMinutes / 60);
+                    const minutes = totalMinutes % 60;
+                    timeDisplay = minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+                }
 
-            setTotalStats({
-                hoursSpent: totalHours,
-                modulesProgress: Math.round(totalModulesProgress * 100),
-                docsCompleted: modules.reduce((total, module) => total + (module.completedDocs || 0), 0)
-            });
+                // Calculate total completed QCMs
+                const totalDocs = modules.reduce((total, module) => total + (module.completedQcms || 0), 0);
 
-            // Get top 3 modules by hours spent for the stats cards
-            const topModules = [...modules]
-                .sort((a, b) => (b.completedDocs || 0) - (a.completedDocs || 0))
-                .slice(0, 3)
-                .map(module => ({
-                    title: module.name,
-                    hours: (module.completedDocs || 0) * 2 // 2 hours per doc
-                }));
+                // Calculate average progress percentage across all modules
+                const totalModulesProgress = modules.length > 0
+                    ? modules.reduce((sum, module) => {
+                        const totalQcms = module.qcmCount || 1;
+                        const completedQcms = module.completedQcms || 0;
+                        return sum + (completedQcms / totalQcms);
+                    }, 0) / modules.length
+                    : 0;
 
-            setModuleStats(topModules);
+                setTotalStats({
+                    hoursSpent: timeDisplay,
+                    modulesProgress: Math.round(totalModulesProgress * 100), // Convert to percentage
+                    docsCompleted: totalDocs
+                });
+
+                // Get module time tracking data for all modules
+                const moduleTimePromises = modules.map(async (module) => {
+                    const timeData = await getModuleTimeTracking(module.$id);
+                    const totalModuleMinutes = timeData.reduce((sum, record) => sum + record.minutes, 0);
+
+                    // Format time display (minutes until 59, then hours)
+                    let timeDisplay;
+                    if (totalModuleMinutes < 60) {
+                        timeDisplay = `${totalModuleMinutes}m`;
+                    } else {
+                        const hours = Math.floor(totalModuleMinutes / 60);
+                        const minutes = totalModuleMinutes % 60;
+                        timeDisplay = minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+                    }
+
+                    return {
+                        title: module.name,
+                        hours: Math.floor(totalModuleMinutes / 60),
+                        minutes: totalModuleMinutes % 60,
+                        timeDisplay: timeDisplay,
+                        totalMinutes: totalModuleMinutes
+                    };
+                });
+
+                const moduleTimeData = await Promise.all(moduleTimePromises);
+
+                // Sort by time spent
+                const sortedModuleStats = moduleTimeData
+                    .sort((a, b) => b.totalMinutes - a.totalMinutes)
+                    .slice(0, 3); // Take top 3 modules
+
+                setModuleStats(sortedModuleStats);
+            } catch (error) {
+                console.error("Error loading stats:", error);
+            }
         };
-        fetchStats();
-    }, [selectedPeriod, user]);
+
+        loadStats();
+    }, [selectedPeriod]); // Recalculate when period changes
 
     const handleSearch = (query) => {
         setSearchQuery(query);
@@ -151,7 +188,7 @@ export const Reports = () => {
                             </div>
                             <span style={{ color: textSecondary }} className="font-medium">Hours Spent</span>
                         </div>
-                        <p style={{ color: textPrimary }} className="text-3xl font-bold">{totalStats.hoursSpent}h</p>
+                        <p style={{ color: textPrimary }} className="text-3xl font-bold">{totalStats.hoursSpent}</p>
                         <p style={{ color: isDarkMode ? "#9CA3AF" : "text-gray-400" }} className="text-sm mt-1">
                             <FiCalendar className="inline mr-1" size={14} />
                             {selectedPeriod}
