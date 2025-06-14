@@ -2,6 +2,8 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FiLogOut } from 'react-icons/fi';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { getProfileImageUrl } from '../lib/appwrite';
+import { useState, useEffect } from 'react';
 import Logo from '../assets/icons/logo.svg';
 import LogoDark from '../assets/icons/logoDark.svg';
 import DashboardIcon from '../assets/icons/dashboard.svg';
@@ -17,8 +19,39 @@ import SettingsIconDark from '../assets/icons/settingsDark.svg';
 import ProfilePlaceholder from '../assets/icons/profile.svg';
 import ProfilePlaceholderDark from '../assets/icons/profileDark.svg';
 
-const Sidebar = ({ user, activeNavItem, handleLogout }) => {
+const Sidebar = ({ user, activeNavItem, handleLogout, isLoading }) => {
     const { isDarkMode, colors } = useDarkMode();
+    const [profileImageUrl, setProfileImageUrl] = useState(null);
+
+    useEffect(() => {
+        // Get the profile image URL if the user has one
+        const fetchProfileImage = async () => {
+            try {
+                console.log("Fetching profile image. User:", user);
+                console.log("Profile image ID:", user?.profile?.profileImageId);
+
+                if (user?.profile?.profileImageId) {
+                    const imageUrl = getProfileImageUrl(user.profile.profileImageId);
+                    console.log("Profile image URL:", imageUrl);
+                    setProfileImageUrl(imageUrl);
+                }
+            } catch (error) {
+                console.error('Error fetching profile image:', error);
+            }
+        };
+
+        if (user) {
+            fetchProfileImage();
+        }
+    }, [user]);
+
+    // Force re-render when activeNavItem changes (like when visiting Settings)
+    useEffect(() => {
+        if (activeNavItem === 'Settings' && user?.profile?.profileImageId) {
+            const imageUrl = getProfileImageUrl(user.profile.profileImageId);
+            setProfileImageUrl(imageUrl);
+        }
+    }, [activeNavItem, user]);
 
     // Animation configs
     const containerVariants = {
@@ -108,7 +141,24 @@ const Sidebar = ({ user, activeNavItem, handleLogout }) => {
                 className="mt-8 rounded-lg p-3 w-full flex items-center"
             >
                 <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-200">
-                    <img src={user?.profileImage ? user.profileImage : (isDarkMode ? ProfilePlaceholderDark : ProfilePlaceholder)} alt={user?.name || 'User'} className="w-full h-full object-cover" />
+                    {profileImageUrl ? (
+                        <img
+                            src={profileImageUrl}
+                            alt={user?.name || 'User'}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                                console.error('Error loading profile image, falling back to placeholder');
+                                e.target.onerror = null;
+                                e.target.src = isDarkMode ? ProfilePlaceholderDark : ProfilePlaceholder;
+                            }}
+                        />
+                    ) : (
+                        <img
+                            src={isDarkMode ? ProfilePlaceholderDark : ProfilePlaceholder}
+                            alt={user?.name || 'User'}
+                            className="w-full h-full object-cover"
+                        />
+                    )}
                 </div>
                 <div className="ml-3">
                     <p style={{ color: colors.textPrimary }} className="font-semibold text-s">{user?.name || 'User'}</p>
@@ -124,14 +174,15 @@ const Sidebar = ({ user, activeNavItem, handleLogout }) => {
                 whileHover={{ backgroundColor: colors.errorBg }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleLogout}
+                disabled={isLoading}
                 style={{
                     backgroundColor: colors.errorBg,
                     color: colors.error
                 }}
-                className="mt-4 flex items-center justify-center gap-2 text-sm p-3 w-full rounded-lg"
+                className="mt-4 flex items-center justify-center gap-2 text-sm p-3 w-full rounded-lg disabled:opacity-50"
             >
                 <FiLogOut size={16} />
-                <span>Logout</span>
+                <span>{isLoading ? 'Logging out...' : 'Logout'}</span>
             </motion.button>
         </motion.div>
     );

@@ -1,12 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
-import { account } from './lib/appwrite';
+import { getCurrentUser } from './lib/appwrite';
 import { useState, useEffect } from 'react';
-import { DarkModeProvider } from './lib/DarkModeContext';
+import { DarkModeProvider, useDarkMode } from './lib/DarkModeContext';
 
 // Pages
 import { Welcome } from './pages/welcome';
 import { SignIn } from './pages/signin';
 import { SignUp } from './pages/signup';
+import { AuthCallback } from './pages/AuthCallback';
 import { Home } from './pages/home';
 import { Library } from './pages/library';
 import { Modules } from './pages/modules';
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/" element={<Welcome />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/auth-callback" element={<AuthCallback />} />
 
           {/* Protected routes with Layout - using a single Layout instance for all routes */}
           <Route element={
@@ -54,12 +56,13 @@ export default function App() {
 const ProtectedRoute = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { isDarkMode } = useDarkMode();
 
   useEffect(() => {
     const checkUserStatus = async () => {
       try {
-        const user = await account.get();
-        setUser(user);
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
       } catch (error) {
         console.log(error);
       } finally {
@@ -71,7 +74,7 @@ const ProtectedRoute = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-[#EAEFFB]">
+      <div className={`flex justify-center items-center h-screen ${isDarkMode ? 'bg-[#181A20]' : 'bg-[#EAEFFB]'}`}>
         <div className="w-16 h-16 border-t-4 border-[#AF42F6] border-solid rounded-full animate-spin"></div>
       </div>
     );

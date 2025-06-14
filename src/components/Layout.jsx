@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link, useLocation, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { account } from '../lib/appwrite';
+import { getCurrentUser, logoutUser } from '../lib/appwrite';
 import { useDarkMode } from '../lib/DarkModeContext';
 import Sidebar from './Sidebar';
 import MobileSidebar from './MobileSidebar';
@@ -13,16 +13,41 @@ const Layout = () => {
     const [error, setError] = useState('');
     const [greeting, setGreeting] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const { isDarkMode, colors } = useDarkMode();
     const navigate = useNavigate();
     const location = useLocation();
 
+    const refreshUserData = useCallback(async () => {
+        console.log("Refreshing user data...");
+        try {
+            const currentUser = await getCurrentUser();
+            if (currentUser) {
+                console.log("Refreshed user data:", currentUser);
+                setUser(currentUser);
+                return currentUser;
+            } else {
+                console.log("No user found during refresh");
+                navigate('/signin');
+                return null;
+            }
+        } catch (error) {
+            console.error('Error refreshing user data:', error);
+            return null;
+        }
+    }, [navigate]);
+
     useEffect(() => {
         const getUser = async () => {
             try {
-                const currentUser = await account.get();
-                setUser(currentUser);
+                const currentUser = await getCurrentUser();
+                if (currentUser) {
+                    setUser(currentUser);
+                } else {
+                    navigate('/signin');
+                }
             } catch (error) {
+                console.error('Error fetching user:', error);
                 navigate('/signin');
             }
         };
@@ -41,10 +66,14 @@ const Layout = () => {
 
     const handleLogout = async () => {
         try {
-            await account.deleteSession('current');
-            navigate('/');
+            setIsLoading(true);
+            await logoutUser();
+            navigate('/signin');
         } catch (error) {
             setError(error.message);
+            console.error('Logout error:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -76,6 +105,7 @@ const Layout = () => {
                 user={user}
                 activeNavItem={getActiveNavItem()}
                 handleLogout={handleLogout}
+                isLoading={isLoading}
             />
 
             {/* Mobile Sidebar - positioned to cover the header */}
@@ -86,6 +116,7 @@ const Layout = () => {
                         activeNavItem={getActiveNavItem()}
                         toggleMobileMenu={toggleMobileMenu}
                         handleLogout={handleLogout}
+                        isLoading={isLoading}
                     />
                 )}
             </AnimatePresence>
@@ -129,7 +160,7 @@ const Layout = () => {
                 {/* Add padding at the top on mobile to account for the floating header */}
                 <div className="lg:pt-0 pt-20">
                     {/* Dynamic content with Outlet */}
-                    <Outlet context={{ user, greeting }} />
+                    <Outlet context={{ user, greeting, refreshUserData }} />
                 </div>
             </motion.div>
 

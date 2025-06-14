@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { account } from '../lib/appwrite';
+import { account, oAuthProviders } from '../lib/appwrite';
 import Logo from '../assets/icons/logo.svg';
 import LogoDark from '../assets/icons/logoDark.svg';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { FcGoogle } from 'react-icons/fc';
+import { AiFillApple } from 'react-icons/ai';
 
 export const SignIn = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [oauthLoading, setOauthLoading] = useState('');
     const navigate = useNavigate();
     const { isDarkMode } = useDarkMode();
 
@@ -42,6 +45,20 @@ export const SignIn = () => {
             setError(error.message);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleOAuthSignIn = async (provider) => {
+        try {
+            setOauthLoading(provider);
+
+            // Create OAuth session and redirect to provider's login page
+            const redirectUrl = window.location.origin + '/auth-callback';
+            await account.createOAuth2Session(provider, redirectUrl, redirectUrl);
+
+        } catch (error) {
+            setError(`Failed to sign in with ${provider}: ${error.message}`);
+            setOauthLoading('');
         }
     };
 
@@ -129,7 +146,44 @@ export const SignIn = () => {
                     </div>
                 </form>
 
-                <div className="mt-6 text-center">
+                {/* Divider */}
+                <div className="flex items-center my-6">
+                    <div className={`flex-grow h-px ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
+                    <span className={`px-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>or continue with</span>
+                    <div className={`flex-grow h-px ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
+                </div>
+
+                {/* OAuth Buttons */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                    <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => handleOAuthSignIn(oAuthProviders.google)}
+                        disabled={oauthLoading === oAuthProviders.google}
+                        className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border transition-all ${isDarkMode ? 'bg-[#23272F] border-gray-700 text-white hover:bg-gray-800' : 'bg-white border-gray-200 hover:bg-gray-50'}`}
+                    >
+                        <FcGoogle size={20} />
+                        <span>Google</span>
+                        {oauthLoading === oAuthProviders.google && (
+                            <div className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin ml-2"></div>
+                        )}
+                    </motion.button>
+                    <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => handleOAuthSignIn(oAuthProviders.apple)}
+                        disabled={oauthLoading === oAuthProviders.apple}
+                        className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border transition-all ${isDarkMode ? 'bg-[#23272F] border-gray-700 text-white hover:bg-gray-800' : 'bg-white border-gray-200 hover:bg-gray-50'}`}
+                    >
+                        <AiFillApple size={22} className={isDarkMode ? 'text-white' : 'text-black'} />
+                        <span>Apple</span>
+                        {oauthLoading === oAuthProviders.apple && (
+                            <div className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin ml-2"></div>
+                        )}
+                    </motion.button>
+                </div>
+
+                <div className="text-center">
                     <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         Don't have an account?{' '}
                         <Link
