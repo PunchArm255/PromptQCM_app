@@ -1,7 +1,11 @@
 import { motion } from 'framer-motion';
+import { useDarkMode } from '../lib/DarkModeContext';
 import DocIcon from '../assets/icons/doc.svg';
+import DocIconDark from '../assets/icons/docDark.svg';
 
 const DocumentCard = ({ document, index, onClick, isSelected }) => {
+    const { isDarkMode, colors } = useDarkMode();
+
     const itemVariants = {
         hidden: { y: 20, opacity: 0 },
         visible: {
@@ -25,16 +29,23 @@ const DocumentCard = ({ document, index, onClick, isSelected }) => {
         <motion.div
             variants={itemVariants}
             custom={index}
-            whileHover={{ scale: 1.02, backgroundColor: "#F6F8FC" }}
-            className={`flex items-center p-3 rounded-lg cursor-pointer transition-all ${isSelected ? 'bg-[#E8EDFE]' : ''}`}
+            whileHover={{ scale: 1.02, backgroundColor: isDarkMode ? colors.bgAccent : "#F0F4FF" }}
+            style={{
+                backgroundColor: isSelected ? (isDarkMode ? colors.bgAccent : "#F0F4FF") : 'transparent',
+                color: colors.textPrimary
+            }}
+            className={`flex items-center p-3 rounded-lg cursor-pointer transition-all`}
             onClick={() => onClick && onClick(document)}
         >
-            <div className="w-10 h-10 rounded-lg bg-[#E8EDFE] flex items-center justify-center mr-3">
-                <img src={DocIcon} alt="Document" className="w-5 h-5" />
+            <div
+                style={{ backgroundColor: isDarkMode ? "#4B5563" : "#EDF2F7" }}
+                className="w-10 h-10 rounded-lg flex items-center justify-center mr-3"
+            >
+                <img src={isDarkMode ? DocIconDark : DocIcon} alt="Document" className="w-5 h-5" />
             </div>
             <div>
-                <p className="font-medium text-[#252525]">{fileName}</p>
-                <p className="text-xs text-gray-400">{formatDate(document.$createdAt)}</p>
+                <p style={{ color: colors.textPrimary }} className="font-medium">{fileName}</p>
+                <p style={{ color: colors.textSecondary }} className="text-xs">{formatDate(document.$createdAt)}</p>
             </div>
         </motion.div>
     );

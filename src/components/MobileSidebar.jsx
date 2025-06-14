@@ -1,22 +1,24 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FiLogOut } from 'react-icons/fi';
+import { useDarkMode } from '../lib/DarkModeContext';
 import Logo from '../assets/icons/logo.svg';
+import LogoDark from '../assets/icons/logoDark.svg';
 import DashboardIcon from '../assets/icons/dashboard.svg';
+import DashboardIconDark from '../assets/icons/dashboardDark.svg';
 import LibraryIcon from '../assets/icons/library.svg';
+import LibraryIconDark from '../assets/icons/libraryDark.svg';
 import ModulesIcon from '../assets/icons/modules.svg';
+import ModulesIconDark from '../assets/icons/modulesDark.svg';
 import ReportsIcon from '../assets/icons/reports.svg';
+import ReportsIconDark from '../assets/icons/reportsDark.svg';
 import SettingsIcon from '../assets/icons/settings.svg';
+import SettingsIconDark from '../assets/icons/settingsDark.svg';
 import ProfilePlaceholder from '../assets/icons/profile.svg';
+import ProfilePlaceholderDark from '../assets/icons/profileDark.svg';
 
-const MobileSidebar = ({ user, activeNavItem, toggleMobileMenu, handleLogout, isDarkMode = false }) => {
-    // Background colors based on dark mode
-    const bgPrimary = isDarkMode ? "#1E1E1E" : "#F5F6FF";
-    const bgSecondary = isDarkMode ? "#2D2D2D" : "#FFFFFF";
-    const bgAccent = isDarkMode ? "#3D3D3D" : "#F6F8FC";
-    const textPrimary = isDarkMode ? "#FFFFFF" : "#252525";
-    const textSecondary = isDarkMode ? "#E0E0E0" : "#6B7280";
-    const borderColor = isDarkMode ? "#3D3D3D" : "#E0E7EF";
+const MobileSidebar = ({ user, activeNavItem, toggleMobileMenu, handleLogout }) => {
+    const { isDarkMode, colors } = useDarkMode();
 
     // Animation configs
     const containerVariants = {
@@ -41,11 +43,11 @@ const MobileSidebar = ({ user, activeNavItem, toggleMobileMenu, handleLogout, is
 
     // Navigation items
     const navItems = [
-        { name: 'Dashboard', icon: DashboardIcon, path: '/home' },
-        { name: 'Library', icon: LibraryIcon, path: '/library' },
-        { name: 'Modules', icon: ModulesIcon, path: '/modules' },
-        { name: 'Reports', icon: ReportsIcon, path: '/reports' },
-        { name: 'Settings', icon: SettingsIcon, path: '/settings' },
+        { name: 'Dashboard', icon: isDarkMode ? DashboardIconDark : DashboardIcon, path: '/home' },
+        { name: 'Library', icon: isDarkMode ? LibraryIconDark : LibraryIcon, path: '/library' },
+        { name: 'Modules', icon: isDarkMode ? ModulesIconDark : ModulesIcon, path: '/modules' },
+        { name: 'Reports', icon: isDarkMode ? ReportsIconDark : ReportsIcon, path: '/reports' },
+        { name: 'Settings', icon: isDarkMode ? SettingsIconDark : SettingsIcon, path: '/settings' },
     ];
 
     return (
@@ -63,7 +65,7 @@ const MobileSidebar = ({ user, activeNavItem, toggleMobileMenu, handleLogout, is
                 animate={{ x: 0 }}
                 exit={{ x: -300 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                style={{ backgroundColor: bgPrimary }}
+                style={{ backgroundColor: colors.bgPrimary }}
                 className="w-64 h-full shadow-lg flex flex-col items-center py-8 px-4 absolute top-0 left-0 rounded-tr-xl rounded-br-xl"
             >
                 {/* Logo */}
@@ -73,7 +75,7 @@ const MobileSidebar = ({ user, activeNavItem, toggleMobileMenu, handleLogout, is
                     transition={{ delay: 0.2, duration: 0.5 }}
                     className="mb-8"
                 >
-                    <img src={Logo} alt="PromptQCM" className="h-12" />
+                    <img src={isDarkMode ? LogoDark : Logo} alt="PromptQCM" className="h-12" />
                 </motion.div>
 
                 {/* Navigation */}
@@ -94,11 +96,11 @@ const MobileSidebar = ({ user, activeNavItem, toggleMobileMenu, handleLogout, is
                                 to={item.path}
                                 style={{
                                     backgroundColor: activeNavItem === item.name
-                                        ? bgAccent
+                                        ? colors.bgAccent
                                         : 'transparent',
-                                    color: textPrimary
+                                    color: colors.textPrimary
                                 }}
-                                className={`flex items-center px-4 py-3 rounded-lg transition-all duration-300 hover:bg-white hover:shadow-md ${activeNavItem === item.name ? 'shadow-md' : ''}`}
+                                className={`flex items-center px-4 py-3 rounded-lg transition-all duration-300 hover:bg-opacity-80 ${activeNavItem === item.name ? 'shadow-md' : ''}`}
                                 onClick={() => {
                                     toggleMobileMenu();
                                 }}
@@ -115,7 +117,7 @@ const MobileSidebar = ({ user, activeNavItem, toggleMobileMenu, handleLogout, is
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4, duration: 0.5 }}
-                    style={{ backgroundColor: bgAccent }}
+                    style={{ backgroundColor: colors.bgAccent }}
                     className="mt-8 rounded-lg p-3 w-full flex items-center"
                 >
                     <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200">
@@ -127,15 +129,15 @@ const MobileSidebar = ({ user, activeNavItem, toggleMobileMenu, handleLogout, is
                             />
                         ) : (
                             <img
-                                src={ProfilePlaceholder}
+                                src={isDarkMode ? ProfilePlaceholderDark : ProfilePlaceholder}
                                 alt="Profile"
                                 className="w-full h-full object-cover"
                             />
                         )}
                     </div>
                     <div className="ml-3">
-                        <p style={{ color: textPrimary }} className="font-semibold text-base">{user?.name || 'User'}</p>
-                        <p style={{ color: textSecondary }} className="text-xs">Student</p>
+                        <p style={{ color: colors.textPrimary }} className="font-semibold text-base">{user?.name || 'User'}</p>
+                        <p style={{ color: colors.textSecondary }} className="text-xs">Student</p>
                     </div>
                 </motion.div>
 
@@ -144,12 +146,12 @@ const MobileSidebar = ({ user, activeNavItem, toggleMobileMenu, handleLogout, is
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
-                    whileHover={{ backgroundColor: bgAccent }}
+                    whileHover={{ backgroundColor: colors.errorBg }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleLogout}
                     style={{
-                        backgroundColor: isDarkMode ? "rgba(220, 38, 38, 0.1)" : "rgba(254, 226, 226, 0.8)",
-                        color: isDarkMode ? "#F87171" : "#DC2626"
+                        backgroundColor: colors.errorBg,
+                        color: colors.error
                     }}
                     className="mt-4 flex items-center justify-center gap-2 text-sm p-3 w-full rounded-lg"
                 >

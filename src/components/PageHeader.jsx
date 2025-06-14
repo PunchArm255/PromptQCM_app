@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion';
+import { useDarkMode } from '../lib/DarkModeContext';
 import SearchBar from './SearchBar';
 
 const PageHeader = ({ greeting, userName, onSearch, showExclamation = true, showSearchBar = false }) => {
+    const { colors } = useDarkMode();
+
     // Determine the text to show based on props
     const headerText = userName && showExclamation
         ? `${greeting}, ${userName}!`
@@ -18,7 +21,8 @@ const PageHeader = ({ greeting, userName, onSearch, showExclamation = true, show
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.5 }}
-                className="text-2xl md:text-3xl font-medium text-[#252525] mb-4 md:mb-0 hidden md:block"
+                className="text-2xl md:text-3xl font-medium mb-4 md:mb-0 hidden md:block"
+                style={{ color: colors.textPrimary }}
             >
                 {headerText}
             </motion.h1>
@@ -28,7 +32,8 @@ const PageHeader = ({ greeting, userName, onSearch, showExclamation = true, show
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.5 }}
-                className="text-xl font-medium text-[#252525] mb-4 block md:hidden"
+                className="text-xl font-medium mb-4 block md:hidden"
+                style={{ color: colors.textPrimary }}
             >
                 {headerText}
             </motion.h2>

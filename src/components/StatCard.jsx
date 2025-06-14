@@ -1,14 +1,13 @@
 import { motion } from 'framer-motion';
+import { useDarkMode } from '../lib/DarkModeContext';
 
 const StatCard = ({
     item,
     index,
-    maxHours,
-    isDarkMode = false,
-    bgColor,
-    textColor,
-    textSecondary
+    maxHours
 }) => {
+    const { isDarkMode, colors } = useDarkMode();
+
     // Calculate the percentage but cap it at 100% (which is 20h)
     const MAX_HOURS = 20;
     const percentage = Math.min((item.hours / MAX_HOURS), 1);
@@ -34,7 +33,7 @@ const StatCard = ({
     };
 
     // Background color for track circle
-    const circleTrackColor = isDarkMode ? "#3D3D3D" : "#E6E6E6";
+    const circleTrackColor = isDarkMode ? colors.bgAccent : "#E6E6E6";
 
     return (
         <motion.div
@@ -92,8 +91,8 @@ const StatCard = ({
                     </span>
                 </motion.div>
             </div>
-            <p style={{ color: textColor }} className="text-center text-sm sm:text-base font-medium">{item.title}</p>
-            <p style={{ color: textSecondary || (isDarkMode ? "#9CA3AF" : "text-gray-400") }} className="text-center text-xs">of 20h</p>
+            <p style={{ color: colors.textPrimary }} className="text-center text-sm sm:text-base font-medium">{item.title}</p>
+            <p style={{ color: colors.textSecondary }} className="text-center text-xs">of 20h</p>
         </motion.div>
     );
 };

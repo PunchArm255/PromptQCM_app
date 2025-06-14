@@ -6,20 +6,16 @@ import { useDarkMode } from '../lib/DarkModeContext';
 import Sidebar from './Sidebar';
 import MobileSidebar from './MobileSidebar';
 import Logo from '../assets/icons/logo.svg';
+import LogoDark from '../assets/icons/logoDark.svg';
 
 const Layout = () => {
     const [user, setUser] = useState(null);
     const [error, setError] = useState('');
     const [greeting, setGreeting] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const { isDarkMode } = useDarkMode();
+    const { isDarkMode, colors } = useDarkMode();
     const navigate = useNavigate();
     const location = useLocation();
-
-    // Background colors based on dark mode
-    const bgPrimary = isDarkMode ? "#121212" : "#EAEFFB";
-    const bgSecondary = isDarkMode ? "#1E1E1E" : "#F5F6FF";
-    const textPrimary = isDarkMode ? "#FFFFFF" : "#252525";
 
     useEffect(() => {
         const getUser = async () => {
@@ -72,7 +68,7 @@ const Layout = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
-            style={{ backgroundColor: bgPrimary }}
+            style={{ backgroundColor: colors.bgElevated }}
             className="flex h-screen overflow-hidden font-gotham"
         >
             {/* Desktop Sidebar */}
@@ -80,7 +76,6 @@ const Layout = () => {
                 user={user}
                 activeNavItem={getActiveNavItem()}
                 handleLogout={handleLogout}
-                isDarkMode={isDarkMode}
             />
 
             {/* Mobile Sidebar - positioned to cover the header */}
@@ -91,7 +86,6 @@ const Layout = () => {
                         activeNavItem={getActiveNavItem()}
                         toggleMobileMenu={toggleMobileMenu}
                         handleLogout={handleLogout}
-                        isDarkMode={isDarkMode}
                     />
                 )}
             </AnimatePresence>
@@ -108,15 +102,15 @@ const Layout = () => {
                     initial={{ y: -10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    style={{ backgroundColor: bgSecondary, color: textPrimary }}
+                    style={{ backgroundColor: colors.bgSecondary, color: colors.textPrimary }}
                     className="lg:hidden fixed top-6 left-0 right-0 z-20 mx-4 flex items-center justify-between rounded-xl shadow-md px-4 py-3"
                 >
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={toggleMobileMenu}
-                        style={{ backgroundColor: bgSecondary, color: textPrimary }}
-                        className="p-2 rounded-full hover:bg-[#EAEFFB] transition-colors z-30"
+                        style={{ backgroundColor: colors.bgSecondary, color: colors.textPrimary }}
+                        className="p-2 rounded-full hover:bg-opacity-80 transition-colors z-30"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
@@ -125,7 +119,7 @@ const Layout = () => {
 
                     {/* Centered Logo */}
                     <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
-                        <img src={Logo} alt="PromptQCM" className="h-8 w-auto" />
+                        <img src={isDarkMode ? LogoDark : Logo} alt="PromptQCM" className="h-8 w-auto" />
                     </div>
 
                     {/* Invisible element to balance the header */}

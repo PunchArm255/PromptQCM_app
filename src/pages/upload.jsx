@@ -2,7 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 import { FiUpload, FiFileText, FiCheck, FiAlertCircle, FiLoader } from 'react-icons/fi';
+import { useDarkMode } from '../lib/DarkModeContext';
 import Logo from '../assets/icons/logo.svg';
+import LogoDark from '../assets/icons/logoDark.svg';
 import { generateQCMWithOpenRouter } from '../lib/openrouter';
 import { createWorker } from 'tesseract.js';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -57,6 +59,7 @@ const parseQCMFromText = (text) => {
 
 export const Upload = () => {
     const { user } = useOutletContext() || {};
+    const { isDarkMode, colors } = useDarkMode();
     const [pdfFile, setPdfFile] = useState(null);
     const [pdfText, setPdfText] = useState('');
     const [qcm, setQcm] = useState(null);
@@ -99,11 +102,11 @@ export const Upload = () => {
         };
 
         const highlight = () => {
-            dropArea.classList.add('border-[#AF42F6]', 'bg-[#F5F6FF]');
+            dropArea.classList.add('border-[#AF42F6]', 'bg-opacity-20');
         };
 
         const unhighlight = () => {
-            dropArea.classList.remove('border-[#AF42F6]', 'bg-[#F5F6FF]');
+            dropArea.classList.remove('border-[#AF42F6]', 'bg-opacity-20');
         };
 
         const handleDrop = (e) => {
@@ -198,17 +201,18 @@ export const Upload = () => {
             // Method 2: If PDF.js didn't extract enough text, try OCR with Tesseract.js
             setExtractionStep('Using OCR to extract text from scanned pages...');
 
-            // Load the PDF with pdf-lib to render pages as images
+            // Create a new PDFDocument to render each page as an image
             const pdfDoc = await PDFDocument.load(arrayBuffer);
-            const worker = await createWorker('eng');
+            const worker = await createWorker();
             let ocrText = '';
 
-            for (let i = 0; i < Math.min(pdfDoc.getPageCount(), 10); i++) {
-                setExtractionStep(`OCR processing page ${i + 1}...`);
+            for (let i = 0; i < pdfDoc.getPageCount(); i++) {
+                setExtractionStep(`Performing OCR on page ${i + 1} of ${pdfDoc.getPageCount()}...`);
 
-                // Render page to canvas
+                // Render the page to a canvas
                 const page = await pdf.getPage(i + 1);
-                const viewport = page.getViewport({ scale: 1.5 }); // Higher scale for better OCR
+                const viewport = page.getViewport({ scale: 2.0 }); // Higher scale for better OCR
+
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
                 canvas.height = viewport.height;
@@ -219,278 +223,371 @@ export const Upload = () => {
                     viewport: viewport
                 }).promise;
 
-                // Get image data for OCR
+                // Convert canvas to image data URL
                 const imageData = canvas.toDataURL('image/png');
 
-                // Perform OCR
+                // Perform OCR on the image
                 const { data } = await worker.recognize(imageData);
                 ocrText += data.text + '\n\n';
             }
 
             await worker.terminate();
 
-            return ocrText || extractedText;
+            return ocrText || extractedText; // Return OCR text if available, otherwise fall back to PDF.js text
         } catch (error) {
-            console.error('Error extracting text:', error);
-            throw new Error('Failed to extract text from PDF');
+            console.error("Error extracting text:", error);
+            throw new Error("Failed to extract text from PDF");
         }
     };
 
-    // Process the PDF and generate QCM
     const handleExtractQCM = async () => {
-        setError(null);
-        setQcm(null);
-        setLoading(true);
-        setExtractionStep('');
-
         if (!pdfFile) {
-            setError('Please select a PDF file.');
-            setLoading(false);
+            setError('Please upload a PDF file first.');
             return;
         }
+
+        setLoading(true);
+        setError(null);
+        setQcm(null);
+        setPdfText('');
 
         try {
             // Extract text from PDF
             const extractedText = await extractTextFromPDF(pdfFile);
             setPdfText(extractedText);
 
-            if (!extractedText || extractedText.trim().length < 50) {
-                throw new Error('Could not extract sufficient text from the PDF.');
-            }
+            setExtractionStep('Generating QCM from extracted text...');
 
-            // Send to OpenRouter AI
-            setExtractionStep('Generating QCM with AI...');
-            const aiResponse = await generateQCMWithOpenRouter(extractedText);
+            // Generate QCM from extracted text
+            const prompt = `
+            I've extracted text from a PDF that contains multiple choice questions. 
+            Please format this content into a proper QCM format with questions and answers.
+            Here's the extracted text:
+            
+            ${extractedText.substring(0, 6000)} // Limit text length to avoid token limits
+            
+            Format each question as:
+            1. Question text
+            A) Option 1
+            B) Option 2
+            C) Option 3
+            D) Option 4
+            Answer: X (where X is the correct option letter)
+            `;
 
-            // Parse the AI response
-            const parsed = parseQCMFromText(aiResponse);
-            if (parsed && parsed.questions && parsed.questions.length > 0) {
-                setQcm(parsed);
+            const aiResponse = await generateQCMWithOpenRouter(prompt);
+            const parsedQCM = parseQCMFromText(aiResponse);
+
+            if (parsedQCM && parsedQCM.questions && parsedQCM.questions.length > 0) {
+                setQcm(parsedQCM);
             } else {
-                throw new Error('Could not generate a valid QCM from the PDF content.');
+                setError('Could not generate a valid QCM from the PDF. Please try a different file or check the PDF content.');
             }
         } catch (err) {
-            console.error('Error:', err);
-            setError(err.message || 'Failed to process the PDF. Please try a different file.');
+            console.error("Error processing PDF:", err);
+            setError(`Error processing PDF: ${err.message}`);
         } finally {
             setLoading(false);
             setExtractionStep('');
         }
     };
 
-    // Save the QCM to Appwrite
     const handleSaveQCM = async (e) => {
-        e.preventDefault();
+        e?.preventDefault();
 
-        if (!qcmName.trim() || !selectedModuleId || !qcm || !qcm.questions || qcm.questions.length === 0) {
+        if (!qcm || !selectedModuleId || !qcmName.trim()) {
             setError('Please provide a name and select a module before saving.');
             return;
         }
 
         setSavingQcm(true);
+        setSaveSuccess(false);
+        setError(null);
 
         try {
-            await saveQCM(
-                selectedModuleId,
-                qcmName.trim(),
-                {
-                    questions: qcm.questions.map(q => ({
-                        question: q.question,
-                        options: q.options,
-                        answer: q.answer
-                    }))
-                }
-            );
+            await saveQCM({
+                name: qcmName.trim(),
+                moduleId: selectedModuleId,
+                questions: qcm.questions
+            });
 
             setSaveSuccess(true);
-            setTimeout(() => setSaveSuccess(false), 2000);
             setQcmName('');
             setSelectedModuleId('');
+            setTimeout(() => setSaveSuccess(false), 3000);
         } catch (err) {
-            console.error('Error saving QCM:', err);
-            setError('Failed to save the QCM. Please try again.');
+            console.error("Error saving QCM:", err);
+            setError(`Error saving QCM: ${err.message}`);
         } finally {
             setSavingQcm(false);
         }
     };
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="min-h-screen flex flex-col items-center justify-center bg-[#EAEFFB] px-4 py-8"
-            style={{ minHeight: '100vh' }}
-        >
-            {/* Gradient Glow Background */}
-            <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#00CAC3] rounded-full opacity-10 blur-3xl"></div>
-            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#AF42F6] rounded-full opacity-10 blur-3xl"></div>
-
-            <div className="w-full max-w-2xl bg-[#F5F6FF] rounded-2xl p-6 sm:p-10 shadow-[0_10px_50px_rgba(0,0,0,0.08)] relative overflow-hidden">
-                <div className="flex items-center mb-6">
-                    <img src={Logo} alt="PromptQCM" className="h-10 w-auto mr-3" />
-                    <h1 className="text-2xl font-bold text-[#252525]">Upload QCM PDF</h1>
-                </div>
-
-                {/* PDF Upload Section */}
-                <div className="bg-white rounded-xl p-4 border border-[#EAEFFB] mb-4">
+        <div className="px-4 sm:px-6 md:px-8 py-6 md:py-8">
+            <div className="flex flex-col lg:flex-row gap-6">
+                {/* Upload Section */}
+                <div className="w-full lg:w-1/2">
                     <div
-                        ref={dropAreaRef}
-                        className="w-full flex flex-col items-center justify-center cursor-pointer py-8 px-4 border-2 border-dashed border-gray-300 rounded-xl hover:bg-[#F5F6FF] transition-all"
+                        className="rounded-2xl overflow-hidden shadow-lg flex flex-col"
+                        style={{
+                            backgroundColor: colors.bgPrimary,
+                            height: '70vh'
+                        }}
                     >
-                        <FiUpload className="h-10 w-10 text-[#AF42F6] mb-2" />
-                        <span className="text-[#AF42F6] font-semibold text-lg mb-1">Click to upload a PDF</span>
-                        <span className="text-gray-500 text-sm">or drag and drop</span>
-                        <input
-                            ref={fileInputRef}
-                            id="pdf-upload"
-                            type="file"
-                            accept="application/pdf"
-                            onChange={handleFileChange}
-                            className="hidden"
-                        />
-                    </div>
-
-                    {pdfFile && (
-                        <div className="mt-4 p-3 bg-[#F5F6FF] rounded-lg flex items-center">
-                            <FiFileText className="text-[#AF42F6] mr-2" />
-                            <span className="text-[#252525] text-sm font-medium">{pdfFile.name}</span>
+                        {/* Upload Header */}
+                        <div className="p-4 border-b" style={{ borderColor: colors.borderColor }}>
+                            <h2 className="text-lg font-bold" style={{ color: colors.textPrimary }}>Upload PDF</h2>
                         </div>
-                    )}
 
-                    {loading && (
-                        <div className="mt-4 p-3 bg-[#F5F6FF] rounded-lg">
-                            <div className="flex items-center text-[#AF42F6] font-semibold mb-2">
-                                <div className="animate-spin mr-2">
-                                    <FiLoader />
+                        {/* Upload Area */}
+                        <div className="flex-1 p-4 flex flex-col">
+                            {/* Drop Area */}
+                            <div
+                                ref={dropAreaRef}
+                                className="border-2 border-dashed rounded-xl flex-1 flex flex-col items-center justify-center p-6 transition-all duration-200"
+                                style={{
+                                    borderColor: colors.borderColor,
+                                    backgroundColor: colors.bgAccent,
+                                    opacity: loading ? 0.7 : 1
+                                }}
+                                onClick={() => !loading && fileInputRef.current?.click()}
+                            >
+                                {loading ? (
+                                    <div className="text-center">
+                                        <FiLoader className="w-12 h-12 mx-auto mb-4 animate-spin" style={{ color: colors.purple }} />
+                                        <p className="text-lg font-medium mb-2" style={{ color: colors.textPrimary }}>Processing PDF...</p>
+                                        <p className="text-sm" style={{ color: colors.textSecondary }}>{extractionStep}</p>
+                                    </div>
+                                ) : pdfFile ? (
+                                    <div className="text-center">
+                                        <FiFileText className="w-12 h-12 mx-auto mb-4" style={{ color: colors.purple }} />
+                                        <p className="text-lg font-medium mb-2" style={{ color: colors.textPrimary }}>{pdfFile.name}</p>
+                                        <p className="text-sm" style={{ color: colors.textSecondary }}>
+                                            {(pdfFile.size / 1024 / 1024).toFixed(2)} MB
+                                        </p>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleExtractQCM();
+                                            }}
+                                            className="mt-4 px-4 py-2 rounded-lg text-white font-medium"
+                                            style={{
+                                                background: "linear-gradient(to right, #00CAC3, #AF42F6)"
+                                            }}
+                                        >
+                                            Extract QCM
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="text-center">
+                                        <FiUpload className="w-12 h-12 mx-auto mb-4" style={{ color: colors.purple }} />
+                                        <p className="text-lg font-medium mb-2" style={{ color: colors.textPrimary }}>Drag & Drop PDF here</p>
+                                        <p className="text-sm mb-4" style={{ color: colors.textSecondary }}>or click to browse files</p>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                fileInputRef.current?.click();
+                                            }}
+                                            className="px-4 py-2 rounded-lg text-white font-medium"
+                                            style={{
+                                                background: "linear-gradient(to right, #00CAC3, #AF42F6)"
+                                            }}
+                                        >
+                                            Select PDF
+                                        </button>
+                                    </div>
+                                )}
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="application/pdf"
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                    disabled={loading}
+                                />
+                            </div>
+
+                            {/* Error Message */}
+                            {error && (
+                                <div className="mt-4 p-3 rounded-lg bg-red-100 text-red-700">
+                                    <div className="flex items-center">
+                                        <FiAlertCircle className="mr-2" />
+                                        {error}
+                                    </div>
                                 </div>
-                                <span>Processing PDF...</span>
-                            </div>
-                            {extractionStep && (
-                                <div className="text-sm text-gray-600">{extractionStep}</div>
                             )}
-                            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                                <div className="bg-[#AF42F6] h-2 rounded-full animate-pulse" style={{ width: '100%' }}></div>
-                            </div>
                         </div>
-                    )}
-
-                    {error && (
-                        <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-lg flex items-center">
-                            <FiAlertCircle className="mr-2" />
-                            <span>{error}</span>
-                        </div>
-                    )}
-
-                    <motion.button
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => fileInputRef.current.click()}
-                        className="mt-4 py-2 px-5 rounded-lg text-sm font-semibold border border-[#AF42F6] text-[#AF42F6] bg-white hover:bg-[#F5F6FF]"
-                    >
-                        Select PDF
-                    </motion.button>
-
-                    <motion.button
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={handleExtractQCM}
-                        className="ml-2 mt-4 py-2 px-5 rounded-lg text-sm font-semibold text-white"
-                        style={{ background: 'linear-gradient(to right, #00CAC3, #AF42F6)' }}
-                        disabled={!pdfFile || loading}
-                    >
-                        Extract QCM
-                    </motion.button>
+                    </div>
                 </div>
 
-                {/* QCM Display Section */}
-                {qcm && qcm.questions && qcm.questions.length > 0 && (
-                    <div className="mt-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold text-[#252525]">Generated QCM</h2>
-                            <button
-                                onClick={() => setShowAnswers(a => !a)}
-                                className="py-2 px-4 rounded-lg text-sm font-semibold text-white"
-                                style={{ background: 'linear-gradient(to right, #00CAC3, #AF42F6)' }}
-                            >
-                                {showAnswers ? 'Hide Answers' : 'Show Answers'}
-                            </button>
+                {/* QCM Preview Section */}
+                <div className="w-full lg:w-1/2">
+                    <div
+                        className="rounded-2xl overflow-hidden shadow-lg flex flex-col"
+                        style={{
+                            backgroundColor: colors.bgPrimary,
+                            height: '70vh'
+                        }}
+                    >
+                        {/* Preview Header */}
+                        <div className="p-4 border-b flex justify-between items-center" style={{ borderColor: colors.borderColor }}>
+                            <h2 className="text-lg font-bold" style={{ color: colors.textPrimary }}>QCM Preview</h2>
+                            {qcm && (
+                                <button
+                                    onClick={() => setShowAnswers(!showAnswers)}
+                                    className="px-3 py-1 text-sm rounded-lg"
+                                    style={{
+                                        backgroundColor: colors.bgAccent,
+                                        color: colors.textPrimary
+                                    }}
+                                >
+                                    {showAnswers ? 'Hide Answers' : 'Show Answers'}
+                                </button>
+                            )}
                         </div>
 
-                        {/* QCM Save Form */}
-                        <form className="flex flex-col sm:flex-row gap-2 mb-4 items-center" onSubmit={handleSaveQCM}>
-                            <input
-                                type="text"
-                                className="flex-1 py-2 px-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#AF42F6]"
-                                placeholder="QCM Name (required)"
-                                value={qcmName}
-                                onChange={e => setQcmName(e.target.value)}
-                                required
-                            />
-                            <select
-                                className="py-2 px-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00CAC3]"
-                                value={selectedModuleId}
-                                onChange={e => setSelectedModuleId(e.target.value)}
-                                required
-                            >
-                                <option value="">Select Module</option>
-                                {modules.map(m => (
-                                    <option key={m.$id} value={m.$id}>{m.name}</option>
-                                ))}
-                            </select>
-                            <motion.button
-                                whileHover={{ scale: 1.03 }}
-                                whileTap={{ scale: 0.97 }}
-                                type="submit"
-                                disabled={!qcmName.trim() || !selectedModuleId || savingQcm}
-                                className="py-2 px-5 rounded-lg text-sm font-semibold text-white transition-all disabled:opacity-70"
-                                style={{ background: 'linear-gradient(to right, #00CAC3, #AF42F6)' }}
-                            >
-                                {savingQcm ? 'Saving...' : 'Save QCM'}
-                            </motion.button>
+                        {/* QCM Content */}
+                        <div className="flex-1 overflow-y-auto p-4">
                             {saveSuccess && (
-                                <span className="text-green-600 font-semibold flex items-center">
-                                    <FiCheck className="mr-1" /> Saved!
-                                </span>
-                            )}
-                        </form>
-
-                        {/* QCM Questions Display */}
-                        <div className="bg-white rounded-xl border border-[#EAEFFB] p-4 divide-y divide-gray-100">
-                            {qcm.questions.map((q, i) => (
-                                <div key={i} className="py-4 first:pt-0 last:pb-0">
-                                    <div className="font-semibold mb-3 text-[#252525]">{i + 1}. {q.question}</div>
-                                    <ul className="mb-3 space-y-2">
-                                        {q.options.map((opt, j) => {
-                                            const letter = String.fromCharCode(65 + j);
-                                            const isCorrectAnswer = showAnswers && letter === q.answer;
-
-                                            return (
-                                                <li
-                                                    key={j}
-                                                    className={`p-2 rounded-lg flex items-center ${isCorrectAnswer
-                                                            ? 'bg-green-50 border border-green-200'
-                                                            : 'hover:bg-[#F5F6FF]'
-                                                        }`}
-                                                >
-                                                    <span className={`inline-block w-6 font-bold ${isCorrectAnswer ? 'text-green-600' : 'text-[#AF42F6]'}`}>
-                                                        {letter})
-                                                    </span>
-                                                    <span className="ml-2">{opt}</span>
-                                                    {isCorrectAnswer && (
-                                                        <span className="ml-auto text-green-600">
-                                                            <FiCheck />
-                                                        </span>
-                                                    )}
-                                                </li>
-                                            );
-                                        })}
-                                    </ul>
+                                <div className="bg-green-100 text-green-700 p-3 rounded-lg mb-4 flex items-center">
+                                    <FiCheckCircle className="mr-2" />
+                                    QCM saved successfully!
                                 </div>
-                            ))}
+                            )}
+
+                            {!qcm ? (
+                                <div
+                                    className="h-full flex flex-col items-center justify-center text-center p-6"
+                                    style={{ color: colors.textSecondary }}
+                                >
+                                    <p className="mb-2">No QCM extracted yet.</p>
+                                    <p>Upload a PDF file to extract QCM content.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    {/* Save QCM Form */}
+                                    <form
+                                        onSubmit={handleSaveQCM}
+                                        className="p-4 rounded-lg"
+                                        style={{ backgroundColor: colors.bgAccent }}
+                                    >
+                                        <h3
+                                            className="text-lg font-medium mb-3"
+                                            style={{ color: colors.textPrimary }}
+                                        >
+                                            Save QCM
+                                        </h3>
+                                        <div className="space-y-3">
+                                            <div>
+                                                <label
+                                                    htmlFor="qcmName"
+                                                    className="block text-sm font-medium mb-1"
+                                                    style={{ color: colors.textSecondary }}
+                                                >
+                                                    QCM Name
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    id="qcmName"
+                                                    value={qcmName}
+                                                    onChange={(e) => setQcmName(e.target.value)}
+                                                    className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#AF42F6]"
+                                                    style={{
+                                                        backgroundColor: colors.bgSecondary,
+                                                        color: colors.textPrimary,
+                                                        borderColor: colors.borderColor
+                                                    }}
+                                                    placeholder="Enter a name for this QCM"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label
+                                                    htmlFor="moduleSelect"
+                                                    className="block text-sm font-medium mb-1"
+                                                    style={{ color: colors.textSecondary }}
+                                                >
+                                                    Module
+                                                </label>
+                                                <select
+                                                    id="moduleSelect"
+                                                    value={selectedModuleId}
+                                                    onChange={(e) => setSelectedModuleId(e.target.value)}
+                                                    className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#AF42F6]"
+                                                    style={{
+                                                        backgroundColor: colors.bgSecondary,
+                                                        color: colors.textPrimary,
+                                                        borderColor: colors.borderColor
+                                                    }}
+                                                    required
+                                                >
+                                                    <option value="">Select a module</option>
+                                                    {modules.map((module) => (
+                                                        <option key={module.$id} value={module.$id}>
+                                                            {module.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <button
+                                                type="submit"
+                                                disabled={savingQcm}
+                                                className="w-full py-2 rounded-lg text-white font-medium"
+                                                style={{
+                                                    background: "linear-gradient(to right, #00CAC3, #AF42F6)",
+                                                    opacity: savingQcm ? 0.7 : 1
+                                                }}
+                                            >
+                                                {savingQcm ? 'Saving...' : 'Save QCM'}
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    {/* QCM Questions */}
+                                    {qcm.questions.map((q, qIndex) => (
+                                        <div
+                                            key={qIndex}
+                                            className="p-4 rounded-lg"
+                                            style={{ backgroundColor: colors.bgAccent }}
+                                        >
+                                            <h3
+                                                className="text-lg font-medium mb-2"
+                                                style={{ color: colors.textPrimary }}
+                                            >
+                                                {qIndex + 1}. {q.question}
+                                            </h3>
+
+                                            <div className="space-y-2 ml-4">
+                                                {q.options.map((opt, i) => {
+                                                    const letter = String.fromCharCode(65 + i); // A, B, C, D
+                                                    const isCorrect = q.answer && q.answer.trim().toUpperCase() === letter.toUpperCase();
+
+                                                    return (
+                                                        <div
+                                                            key={i}
+                                                            className={`flex items-start ${showAnswers && isCorrect ? 'font-bold' : ''
+                                                                }`}
+                                                            style={{
+                                                                color: showAnswers && isCorrect ? '#00CAC3' : colors.textPrimary
+                                                            }}
+                                                        >
+                                                            <span className="mr-2">{letter})</span>
+                                                            <span>{opt}</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
-                )}
+                </div>
             </div>
-        </motion.div>
+        </div>
     );
-}; 
+};
+
+export default Upload; 

@@ -1,12 +1,14 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useDarkMode } from '../lib/DarkModeContext';
 import ProgressModule from './ProgressModule';
 
 const ProgressSection = ({ modules, onPractice }) => {
     const scrollRef = useRef(null);
     const [activeSlide, setActiveSlide] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
+    const { colors } = useDarkMode();
 
     useEffect(() => {
         // Check if viewport is mobile
@@ -73,11 +75,15 @@ const ProgressSection = ({ modules, onPractice }) => {
             className="mb-8"
         >
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-[#252525]">Progress</h2>
+                <h2 style={{ color: colors.textPrimary }} className="text-xl font-bold">Progress</h2>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => scroll('left')}
-                        className="p-2 rounded-full bg-[#F5F6FF] shadow-sm hover:bg-[#F6F8FC] transition-colors"
+                        style={{
+                            backgroundColor: colors.bgPrimary,
+                            color: colors.textPrimary
+                        }}
+                        className="p-2 rounded-full shadow-sm hover:bg-opacity-80 transition-colors"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -85,7 +91,11 @@ const ProgressSection = ({ modules, onPractice }) => {
                     </button>
                     <button
                         onClick={() => scroll('right')}
-                        className="p-2 rounded-full bg-[#F5F6FF] shadow-sm hover:bg-[#F6F8FC] transition-colors"
+                        style={{
+                            backgroundColor: colors.bgPrimary,
+                            color: colors.textPrimary
+                        }}
+                        className="p-2 rounded-full shadow-sm hover:bg-opacity-80 transition-colors"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
@@ -93,8 +103,12 @@ const ProgressSection = ({ modules, onPractice }) => {
                     </button>
                     <Link to="/modules">
                         <motion.div
-                            whileHover={{ backgroundColor: "#F6F8FC" }}
-                            className="text-[#AF42F6] font-semibold py-2 px-4 rounded-lg shadow-sm bg-[#F5F6FF] ml-2"
+                            whileHover={{ opacity: 0.9 }}
+                            style={{
+                                backgroundColor: colors.bgPrimary,
+                                color: colors.purple
+                            }}
+                            className="font-semibold py-2 px-4 rounded-lg shadow-sm ml-2"
                         >
                             View All
                         </motion.div>
@@ -119,8 +133,10 @@ const ProgressSection = ({ modules, onPractice }) => {
                         <button
                             key={index}
                             onClick={() => goToSlide(index)}
-                            className={`h-2 rounded-full transition-all ${activeSlide === index ? 'w-6 bg-[#AF42F6]' : 'w-2 bg-gray-300'
-                                }`}
+                            className={`h-2 rounded-full transition-all ${activeSlide === index ? 'w-6' : 'w-2'}`}
+                            style={{
+                                backgroundColor: activeSlide === index ? colors.purple : colors.bgAccent
+                            }}
                         />
                     ))}
                 </div>

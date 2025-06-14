@@ -1,8 +1,11 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useDarkMode } from '../lib/DarkModeContext';
 import DocumentCard from './DocumentCard';
 
 const RecentsCard = ({ documents }) => {
+    const { colors } = useDarkMode();
+
     const cardVariants = {
         hidden: { scale: 0.95, opacity: 0 },
         visible: {
@@ -33,14 +36,22 @@ const RecentsCard = ({ documents }) => {
     return (
         <motion.div
             variants={cardVariants}
-            className="bg-[#F5F6FF] rounded-2xl p-8 shadow-[0_10px_30px_rgba(0,0,0,0.03)] flex flex-col"
+            style={{
+                backgroundColor: colors.bgPrimary,
+                boxShadow: colors.shadow
+            }}
+            className="rounded-2xl p-8 flex flex-col"
         >
             <div className="flex justify-between items-center mb-8">
-                <h2 className="text-xl font-bold text-[#252525]">Recents</h2>
+                <h2 style={{ color: colors.textPrimary }} className="text-xl font-bold">Recents</h2>
                 <Link to="/library">
                     <motion.div
-                        whileHover={{ backgroundColor: "#F6F8FC" }}
-                        className="text-[#AF42F6] font-semibold py-2 px-4 rounded-lg shadow-sm bg-[#F5F6FF]"
+                        whileHover={{ opacity: 0.9 }}
+                        style={{
+                            backgroundColor: colors.bgAccent,
+                            color: colors.purple
+                        }}
+                        className="font-semibold py-2 px-4 rounded-lg shadow-sm"
                     >
                         View All
                     </motion.div>
@@ -53,7 +64,7 @@ const RecentsCard = ({ documents }) => {
                 className="space-y-4"
             >
                 {documents.length === 0 ? (
-                    <p className="text-gray-500 text-center py-4">No recent documents</p>
+                    <p style={{ color: colors.textSecondary }} className="text-center py-4">No recent documents</p>
                 ) : (
                     documents.map((doc, index) => (
                         <div key={doc.$id} onClick={() => handleDocumentClick(doc)}>

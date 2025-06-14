@@ -3,7 +3,9 @@ import { motion } from 'framer-motion';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { useOutletContext } from 'react-router-dom';
+import { useDarkMode } from '../lib/DarkModeContext';
 import Logo from '../assets/icons/logo.svg';
+import LogoDark from '../assets/icons/logoDark.svg';
 import { generateQCMWithOpenRouter } from '../lib/openrouter';
 import { getUserModules, saveQCM } from '../lib/appwriteService';
 
@@ -61,6 +63,7 @@ function parseOpenRouterQCMResponse(text) {
 
 export const Generate = () => {
     const { user } = useOutletContext() || {};
+    const { isDarkMode, colors } = useDarkMode();
     const [messages, setMessages] = useState([
         { sender: 'ai', text: 'Hi! Tell me what kind of QCM you want to generate. For example: "' + examplePrompt + '"' }
     ]);
@@ -157,7 +160,7 @@ export const Generate = () => {
             doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
 
             // Add logo at the top
-            const logoDataUrl = Logo; // SVG as data URL
+            const logoDataUrl = isDarkMode ? LogoDark : Logo; // SVG as data URL
 
             // Add header with logo
             try {
@@ -199,306 +202,377 @@ export const Generate = () => {
                 doc.text(qcmName, 14, 36);
             }
 
-            // Set up for questions
+            // Add questions
+            let yPos = qcmName ? 46 : 36;
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(12);
             doc.setTextColor(37, 37, 37); // Dark gray
-            let y = qcmName ? 46 : 36;
 
-            // Add each question
-            qcm.questions.forEach((q, i) => {
+            qcm.questions.forEach((q, qIndex) => {
                 // Check if we need a new page
-                if (y > 270) {
+                if (yPos > 250) {
                     doc.addPage();
-                    // Set page background color
-                    doc.setFillColor(245, 246, 255); // #F5F6FF - app background color
-                    doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
-                    y = 20;
+                    yPos = 20;
                 }
 
-                // Add question text
+                // Add question
                 doc.setFont('helvetica', 'bold');
-                let questionText = `${i + 1}. ${q.question || ''}`;
-
-                // Handle long question text with word wrapping
-                const splitQuestion = doc.splitTextToSize(questionText, 180);
-                doc.text(splitQuestion, 14, y);
-                y += splitQuestion.length * 7;
+                doc.text(`${qIndex + 1}. ${q.question}`, 14, yPos);
+                yPos += 8;
 
                 // Add code block if present
                 if (q.code && q.code.trim()) {
-                    // Add some spacing
-                    y += 3;
-
                     doc.setFont('courier', 'normal');
-                    doc.setFillColor(245, 246, 255); // Light blue background
-                    doc.setDrawColor(234, 239, 251); // Border color
+                    doc.setFontSize(10);
+                    doc.setDrawColor(234, 239, 251);
+                    doc.setFillColor(245, 246, 255);
 
-                    // Calculate code block height
                     const codeLines = q.code.split('\n');
-                    const codeHeight = codeLines.length * 5 + 6; // 5 points per line + padding
+                    const codeHeight = codeLines.length * 5 + 4;
 
-                    // Check if code block needs to go to next page
-                    if (y + codeHeight > 270) {
-                        doc.addPage();
-                        y = 20;
-                    }
+                    doc.roundedRect(14, yPos - 4, 180, codeHeight, 2, 2, 'FD');
 
-                    // Draw code block background
-                    doc.roundedRect(14, y - 3, 182, codeHeight, 2, 2, 'FD');
-
-                    // Add code text
-                    doc.setTextColor(80, 80, 80);
-                    codeLines.forEach((line, lineIndex) => {
-                        doc.text(`  ${line}`, 16, y + lineIndex * 5);
+                    codeLines.forEach((line, i) => {
+                        doc.text(line, 16, yPos + i * 5);
                     });
 
-                    y += codeHeight + 3;
+                    yPos += codeHeight + 4;
                     doc.setFont('helvetica', 'normal');
-                    doc.setTextColor(37, 37, 37);
+                    doc.setFontSize(12);
                 }
 
                 // Add options
-                if (q.options && Array.isArray(q.options)) {
-                    // Add some spacing
-                    y += 3;
+                q.options.forEach((opt, i) => {
+                    const letter = String.fromCharCode(65 + i); // A, B, C, D
+                    const isCorrect = q.answer && q.answer.trim().toUpperCase() === letter;
 
-                    q.options.forEach((opt, j) => {
-                        // Check if we need a new page
-                        if (y > 270) {
-                            doc.addPage();
-                            y = 20;
-                        }
-
-                        const letter = String.fromCharCode(65 + j);
-                        const optionText = `${letter}) ${opt || ''}`;
-
-                        // Handle long option text with word wrapping
-                        const splitOption = doc.splitTextToSize(optionText, 170);
-
-                        // Highlight correct answer if showing answers
-                        if (showAnswers && q.answer && q.answer.trim().toUpperCase() === letter) {
-                            // Draw highlight background for correct answer
-                            doc.setFillColor(230, 255, 230); // Light green
-                            doc.roundedRect(16, y - 4, 176, splitOption.length * 7 + 2, 1, 1, 'F');
-                            doc.setTextColor(0, 150, 0); // Green text
-                        } else {
-                            doc.setTextColor(37, 37, 37); // Normal text color
-                        }
-
-                        doc.text(splitOption, 18, y);
-                        y += splitOption.length * 7;
-                    });
-                }
-
-                // Add answer if showing answers but not already highlighted
-                if (showAnswers && q.answer && !q.options.some((_, j) =>
-                    String.fromCharCode(65 + j).toUpperCase() === q.answer.trim().toUpperCase())) {
-                    // Check if we need a new page
-                    if (y > 270) {
-                        doc.addPage();
-                        y = 20;
+                    if (isCorrect && showAnswers) {
+                        doc.setTextColor(0, 202, 195); // Teal for correct answers
+                        doc.setFont('helvetica', 'bold');
+                    } else {
+                        doc.setTextColor(37, 37, 37); // Dark gray
+                        doc.setFont('helvetica', 'normal');
                     }
 
-                    doc.setTextColor(0, 150, 0); // Green text
-                    doc.text(`Answer: ${q.answer}`, 18, y);
-                    y += 7;
-                }
+                    doc.text(`${letter}) ${opt}`, 20, yPos);
+                    yPos += 6;
+                });
 
-                // Add spacing between questions
-                y += 10;
-
-                // Check if we need a new page for the next question
-                if (y > 270 && i < qcm.questions.length - 1) {
-                    doc.addPage();
-                    y = 20;
-                }
+                yPos += 4; // Space between questions
             });
 
-            // Add footer
-            const pageCount = doc.internal.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFont('helvetica', 'italic');
-                doc.setFontSize(10);
-                doc.setTextColor(150, 150, 150);
-                doc.text(`Generated by PromptQCM - Page ${i} of ${pageCount}`, 14, 290);
-            }
-
             // Save the PDF
-            doc.save(`${qcmName || 'qcm'}.pdf`);
+            doc.save(qcmName ? `${qcmName}.pdf` : 'promptqcm_export.pdf');
         } catch (err) {
-            console.error("Error generating PDF:", err);
-            setError("Failed to export PDF. Please try again.");
+            console.error('Error exporting PDF:', err);
+            setError('Error exporting PDF. Please try again.');
             setTimeout(() => setError(null), 3000);
         }
     };
 
     const handleSaveQCM = async () => {
-        if (!qcmName.trim() || !selectedModuleId || !qcm) return;
+        if (!qcm || !selectedModuleId || !qcmName.trim()) {
+            setError('Please provide a name and select a module before saving.');
+            setTimeout(() => setError(null), 3000);
+            return;
+        }
 
+        setSaveSuccess(false);
         try {
-            // Validate that we have questions
-            if (!qcm.questions || !Array.isArray(qcm.questions) || qcm.questions.length === 0) {
-                setError("No valid questions to save");
-                setTimeout(() => setError(null), 3000);
-                return;
-            }
-
-            // Format the QCM data for saving with the new structure
-            const qcmToSave = {
-                questions: qcm.questions.map(q => ({
-                    question: q.question || "",
-                    options: Array.isArray(q.options) ? q.options : [],
-                    answer: q.answer || "",
-                    code: q.code || null
-                }))
-            };
-
-            // Save QCM to Appwrite with the new structure
-            await saveQCM(
-                selectedModuleId,
-                qcmName.trim(),
-                qcmToSave
-            );
-
+            await saveQCM({
+                name: qcmName.trim(),
+                moduleId: selectedModuleId,
+                questions: qcm.questions
+            });
             setSaveSuccess(true);
-            setTimeout(() => setSaveSuccess(false), 2000);
-            setQcmName('');
-            setSelectedModuleId('');
-        } catch (error) {
-            console.error("Error saving QCM:", error);
-            setError("Failed to save QCM. Please try again.");
+            setTimeout(() => setSaveSuccess(false), 3000);
+        } catch (err) {
+            console.error('Error saving QCM:', err);
+            setError('Error saving QCM. Please try again.');
             setTimeout(() => setError(null), 3000);
         }
     };
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="min-h-screen flex flex-col items-center justify-center bg-[#EAEFFB] px-4 font-gotham relative"
-            style={{ minHeight: '100vh' }}
-        >
-            {/* Gradient Glow Background */}
-            <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#00CAC3] rounded-full opacity-10 blur-3xl"></div>
-            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#AF42F6] rounded-full opacity-10 blur-3xl"></div>
-
-            <div className="w-full max-w-2xl bg-[#F5F6FF] rounded-2xl p-6 sm:p-10 shadow-[0_10px_50px_rgba(0,0,0,0.08)] relative overflow-hidden mt-8 mb-8">
-                <div className="flex items-center mb-6">
-                    <img src={Logo} alt="PromptQCM" className="h-10 w-auto mr-3" />
-                    <h1 className="text-2xl font-bold text-[#252525]">AI QCM Generator</h1>
-                </div>
-                <div className="h-[400px] overflow-y-auto hide-scrollbar bg-white rounded-xl p-4 mb-4 border border-[#EAEFFB]">
-                    {messages.map((msg, i) => (
-                        <div key={i} className={`mb-3 flex ${msg.sender === 'ai' ? 'justify-start' : 'justify-end'}`}>
-                            <div className={`max-w-[80%] px-4 py-2 rounded-2xl shadow-sm text-base ${msg.sender === 'ai' ? 'bg-[#EAEFFB] text-[#252525]' : 'bg-gradient-to-r from-[#00CAC3] to-[#AF42F6] text-white'}`}>{msg.text}</div>
-                        </div>
-                    ))}
-                    {error && <div className="text-red-500 text-center my-2">{error}</div>}
-                    {loading && <div className="text-center text-[#AF42F6]">Generating QCM...</div>}
-                    <div ref={chatEndRef}></div>
-                </div>
-                <form onSubmit={handleSend} className="flex gap-2">
-                    <input
-                        type="text"
-                        className="flex-1 py-3 px-4 bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#AF42F6] focus:border-transparent transition-all font-gotham"
-                        placeholder="Describe your QCM (e.g. Write QCM about JavaScript, 10 questions, difficulty: medium, code snippets: no)"
-                        value={input}
-                        onChange={e => setInput(e.target.value)}
-                        disabled={loading}
-                        autoFocus
-                    />
-                    <motion.button
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        type="submit"
-                        disabled={loading}
-                        className="py-3 px-6 rounded-xl text-base font-semibold text-white transition-all disabled:opacity-70 font-gotham"
-                        style={{ background: 'linear-gradient(to right, #00CAC3, #AF42F6)' }}
+        <div className="px-4 sm:px-6 md:px-8 py-6 md:py-8">
+            <div className="flex flex-col lg:flex-row gap-6">
+                {/* Chat Section */}
+                <div className="w-full lg:w-1/2">
+                    <div
+                        className="rounded-2xl overflow-hidden shadow-lg flex flex-col"
+                        style={{
+                            backgroundColor: colors.bgPrimary,
+                            height: '70vh'
+                        }}
                     >
-                        {loading ? '...' : 'Send'}
-                    </motion.button>
-                </form>
+                        {/* Chat Header */}
+                        <div className="p-4 border-b" style={{ borderColor: colors.borderColor }}>
+                            <h2 className="text-lg font-bold" style={{ color: colors.textPrimary }}>Generate QCM</h2>
+                        </div>
 
-                {qcm && (
-                    <div className="mt-8">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold text-[#252525]">Generated QCM</h2>
-                            <div className="flex gap-2">
+                        {/* Chat Messages */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                            {messages.map((msg, index) => (
+                                <div
+                                    key={index}
+                                    className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                                >
+                                    <div
+                                        className={`max-w-[80%] rounded-lg p-3 ${msg.sender === 'user'
+                                            ? 'bg-gradient-to-r from-[#00CAC3] to-[#AF42F6] text-white'
+                                            : ''
+                                            }`}
+                                        style={{
+                                            backgroundColor: msg.sender === 'user' ? '' : colors.bgAccent,
+                                            color: msg.sender === 'user' ? 'white' : colors.textPrimary
+                                        }}
+                                    >
+                                        {msg.text}
+                                    </div>
+                                </div>
+                            ))}
+                            {loading && (
+                                <div className="flex justify-start">
+                                    <div
+                                        className="max-w-[80%] rounded-lg p-3 flex items-center space-x-2"
+                                        style={{
+                                            backgroundColor: colors.bgAccent,
+                                            color: colors.textPrimary
+                                        }}
+                                    >
+                                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+                                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse delay-150"></div>
+                                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse delay-300"></div>
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={chatEndRef}></div>
+                        </div>
+
+                        {/* Chat Input */}
+                        <form onSubmit={handleSend} className="p-4 border-t" style={{ borderColor: colors.borderColor }}>
+                            <div className="flex rounded-lg overflow-hidden">
+                                <input
+                                    type="text"
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    disabled={loading}
+                                    placeholder="Describe the QCM you want to generate..."
+                                    className="flex-1 px-4 py-2 focus:outline-none"
+                                    style={{
+                                        backgroundColor: colors.bgSecondary,
+                                        color: colors.textPrimary,
+                                        borderColor: colors.borderColor
+                                    }}
+                                />
                                 <button
-                                    onClick={() => setShowAnswers(a => !a)}
-                                    className="py-2 px-4 rounded-lg text-sm font-semibold text-white"
-                                    style={{ background: 'linear-gradient(to right, #00CAC3, #AF42F6)' }}
+                                    type="submit"
+                                    disabled={loading || !input.trim()}
+                                    className="px-4 py-2 text-white font-medium"
+                                    style={{
+                                        background: "linear-gradient(to right, #00CAC3, #AF42F6)",
+                                        opacity: loading || !input.trim() ? 0.7 : 1
+                                    }}
+                                >
+                                    Send
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {/* QCM Preview Section */}
+                <div className="w-full lg:w-1/2">
+                    <div
+                        className="rounded-2xl overflow-hidden shadow-lg flex flex-col"
+                        style={{
+                            backgroundColor: colors.bgPrimary,
+                            height: '70vh'
+                        }}
+                    >
+                        {/* Preview Header */}
+                        <div className="p-4 border-b flex justify-between items-center" style={{ borderColor: colors.borderColor }}>
+                            <h2 className="text-lg font-bold" style={{ color: colors.textPrimary }}>QCM Preview</h2>
+                            <div className="flex space-x-2">
+                                <button
+                                    onClick={() => setShowAnswers(!showAnswers)}
+                                    className="px-3 py-1 text-sm rounded-lg"
+                                    style={{
+                                        backgroundColor: colors.bgAccent,
+                                        color: colors.textPrimary
+                                    }}
                                 >
                                     {showAnswers ? 'Hide Answers' : 'Show Answers'}
                                 </button>
                                 <button
-                                    type="button"
                                     onClick={handleExportPDF}
-                                    className="py-2 px-4 rounded-lg text-sm font-semibold text-white"
-                                    style={{ background: 'linear-gradient(to right, #AF42F6, #00CAC3)' }}
+                                    disabled={!qcm}
+                                    className="px-3 py-1 text-sm rounded-lg"
+                                    style={{
+                                        backgroundColor: !qcm ? colors.bgAccent : '',
+                                        background: qcm ? "linear-gradient(to right, #00CAC3, #AF42F6)" : '',
+                                        color: qcm ? 'white' : colors.textSecondary,
+                                        opacity: qcm ? 1 : 0.7
+                                    }}
                                 >
                                     Export PDF
                                 </button>
                             </div>
                         </div>
-                        <form className="flex flex-col sm:flex-row gap-2 mb-4 items-center" onSubmit={e => { e.preventDefault(); handleSaveQCM(); }}>
-                            <input
-                                type="text"
-                                className="flex-1 py-2 px-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#AF42F6] font-gotham"
-                                placeholder="QCM Name (required)"
-                                value={qcmName}
-                                onChange={e => setQcmName(e.target.value)}
-                                required
-                            />
-                            <select
-                                className="py-2 px-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00CAC3] font-gotham"
-                                value={selectedModuleId}
-                                onChange={e => setSelectedModuleId(e.target.value)}
-                                required
-                            >
-                                <option value="">Select Module</option>
-                                {modules.map(m => (
-                                    <option key={m.id} value={m.id}>{m.name}</option>
-                                ))}
-                            </select>
-                            <motion.button
-                                whileHover={{ scale: 1.03 }}
-                                whileTap={{ scale: 0.97 }}
-                                type="submit"
-                                disabled={!qcmName.trim() || !selectedModuleId}
-                                className="py-2 px-5 rounded-lg text-sm font-semibold text-white transition-all disabled:opacity-70 font-gotham"
-                                style={{ background: 'linear-gradient(to right, #00CAC3, #AF42F6)' }}
-                            >
-                                Save QCM
-                            </motion.button>
-                            {saveSuccess && <span className="text-green-600 font-semibold ml-2">Saved!</span>}
-                        </form>
-                        <div className="bg-white rounded-xl border border-[#EAEFFB] p-4">
-                            {qcm.questions.map((q, i) => (
-                                <div key={i} className="mb-6">
-                                    <div className="font-semibold mb-2">{i + 1}. {q.question}</div>
-                                    {q.code && (
-                                        <pre className="bg-[#F5F6FF] rounded p-2 overflow-x-auto text-sm mb-2"><code>{q.code}</code></pre>
-                                    )}
-                                    <ul className="mb-2">
-                                        {q.options.map((opt, j) => (
-                                            <li key={j} className="pl-2 py-1 flex items-center">
-                                                <span className="inline-block w-6 font-bold text-[#AF42F6]">{String.fromCharCode(65 + j)})</span>
-                                                <span className="ml-2">{opt}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                    {showAnswers && q.answer && (
-                                        <div className="text-green-600 font-semibold">Answer: {q.answer}</div>
-                                    )}
+
+                        {/* QCM Content */}
+                        <div className="flex-1 overflow-y-auto p-4">
+                            {error && (
+                                <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-4">
+                                    {error}
                                 </div>
-                            ))}
+                            )}
+
+                            {saveSuccess && (
+                                <div className="bg-green-100 text-green-700 p-3 rounded-lg mb-4">
+                                    QCM saved successfully!
+                                </div>
+                            )}
+
+                            {!qcm ? (
+                                <div
+                                    className="h-full flex flex-col items-center justify-center text-center p-6"
+                                    style={{ color: colors.textSecondary }}
+                                >
+                                    <p className="mb-2">No QCM generated yet.</p>
+                                    <p>Describe what kind of QCM you want in the chat.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    {/* Save QCM Form */}
+                                    <div
+                                        className="p-4 rounded-lg"
+                                        style={{ backgroundColor: colors.bgAccent }}
+                                    >
+                                        <h3
+                                            className="text-lg font-medium mb-3"
+                                            style={{ color: colors.textPrimary }}
+                                        >
+                                            Save QCM
+                                        </h3>
+                                        <div className="space-y-3">
+                                            <div>
+                                                <label
+                                                    htmlFor="qcmName"
+                                                    className="block text-sm font-medium mb-1"
+                                                    style={{ color: colors.textSecondary }}
+                                                >
+                                                    QCM Name
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    id="qcmName"
+                                                    value={qcmName}
+                                                    onChange={(e) => setQcmName(e.target.value)}
+                                                    className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#AF42F6]"
+                                                    style={{
+                                                        backgroundColor: colors.bgSecondary,
+                                                        color: colors.textPrimary,
+                                                        borderColor: colors.borderColor
+                                                    }}
+                                                    placeholder="Enter a name for this QCM"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label
+                                                    htmlFor="moduleSelect"
+                                                    className="block text-sm font-medium mb-1"
+                                                    style={{ color: colors.textSecondary }}
+                                                >
+                                                    Module
+                                                </label>
+                                                <select
+                                                    id="moduleSelect"
+                                                    value={selectedModuleId}
+                                                    onChange={(e) => setSelectedModuleId(e.target.value)}
+                                                    className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#AF42F6]"
+                                                    style={{
+                                                        backgroundColor: colors.bgSecondary,
+                                                        color: colors.textPrimary,
+                                                        borderColor: colors.borderColor
+                                                    }}
+                                                >
+                                                    <option value="">Select a module</option>
+                                                    {modules.map((module) => (
+                                                        <option key={module.id} value={module.id}>
+                                                            {module.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <button
+                                                onClick={handleSaveQCM}
+                                                className="w-full py-2 rounded-lg text-white font-medium"
+                                                style={{
+                                                    background: "linear-gradient(to right, #00CAC3, #AF42F6)"
+                                                }}
+                                            >
+                                                Save QCM
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* QCM Questions */}
+                                    {qcm.questions.map((q, qIndex) => (
+                                        <div
+                                            key={qIndex}
+                                            className="p-4 rounded-lg"
+                                            style={{ backgroundColor: colors.bgAccent }}
+                                        >
+                                            <h3
+                                                className="text-lg font-medium mb-2"
+                                                style={{ color: colors.textPrimary }}
+                                            >
+                                                {qIndex + 1}. {q.question}
+                                            </h3>
+
+                                            {q.code && (
+                                                <pre
+                                                    className="p-3 rounded-md mb-3 overflow-x-auto text-sm"
+                                                    style={{
+                                                        backgroundColor: colors.bgSecondary,
+                                                        color: colors.textPrimary
+                                                    }}
+                                                >
+                                                    {q.code}
+                                                </pre>
+                                            )}
+
+                                            <div className="space-y-2 ml-4">
+                                                {q.options.map((opt, i) => {
+                                                    const letter = String.fromCharCode(65 + i); // A, B, C, D
+                                                    const isCorrect = q.answer && q.answer.trim().toUpperCase() === letter;
+
+                                                    return (
+                                                        <div
+                                                            key={i}
+                                                            className={`flex items-start ${showAnswers && isCorrect ? 'font-bold' : ''
+                                                                }`}
+                                                            style={{
+                                                                color: showAnswers && isCorrect ? '#00CAC3' : colors.textPrimary
+                                                            }}
+                                                        >
+                                                            <span className="mr-2">{letter})</span>
+                                                            <span>{opt}</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
-                )}
+                </div>
             </div>
-        </motion.div>
+        </div>
     );
-}; 
+};
+
+export default Generate; 

@@ -30,6 +30,7 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .font-gotham {
@@ -48,4 +49,91 @@ body {
 .modal-backdrop {
     backdrop-filter: blur(5px);
     background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Dark mode transitions */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hide scrollbar */
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* For the progress bars and chart animations */
+@keyframes gradient-pulse {
+    0% {
+        filter: brightness(1);
+    }
+
+    50% {
+        filter: brightness(1.2);
+    }
+
+    100% {
+        filter: brightness(1);
+    }
+}
+
+.gradient-border {
+    background-image: linear-gradient(#F6F8FC, #F6F8FC), linear-gradient(to right, #00CAC3, #AF42F6);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    border: 2px solid transparent;
+}
+
+.dark .gradient-border {
+    background-image: linear-gradient(#2D2D2D, #2D2D2D), linear-gradient(to right, #00CAC3, #AF42F6);
+}
+
+/* Custom button styles with dark mode support */
+.btn-primary {
+    background-image: linear-gradient(to right, #00CAC3, #AF42F6);
+    color: white;
+}
+
+.btn-secondary {
+    background-color: #F6F8FC;
+    color: #252525;
+}
+
+.dark .btn-secondary {
+    background-color: #3D3D3D;
+    color: #FFFFFF;
+}
+
+/* Input styles with dark mode */
+input,
+select,
+textarea {
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+    background-color: #2D2D2D;
+    color: #FFFFFF;
+    border-color: #3D3D3D;
+}
+
+.dark input::placeholder,
+.dark select::placeholder,
+.dark textarea::placeholder {
+    color: #9CA3AF;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+    border-color: #AF42F6;
+    box-shadow: 0 0 0 2px rgba(175, 66, 246, 0.2);
 }

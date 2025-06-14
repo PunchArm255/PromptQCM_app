@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useDarkMode } from '../lib/DarkModeContext';
 
 const ActionButton = ({
     to,
@@ -8,6 +9,8 @@ const ActionButton = ({
     color = "#AF42F6", // Default color
     onClick
 }) => {
+    const { isDarkMode, colors } = useDarkMode();
+
     // Use the onClick prop if provided, otherwise create a Link component
     const ButtonContent = (
         <motion.button
@@ -17,9 +20,11 @@ const ActionButton = ({
             }}
             whileTap={{ scale: 0.98 }}
             onClick={onClick}
-            className="w-full flex items-center justify-center gap-3 px-3 sm:px-0 py-4 sm:py-6 bg-[#F5F6FF] rounded-xl shadow hover:shadow-lg transition-all duration-300 text-base sm:text-2xl font-bold text-[#252525]"
+            className="w-full flex items-center justify-center gap-3 px-3 sm:px-0 py-4 sm:py-6 rounded-xl shadow hover:shadow-lg transition-all duration-300 text-base sm:text-2xl font-bold"
             style={{
-                backgroundImage: 'linear-gradient(#F5F6FF, #F5F6FF), linear-gradient(to right, #00CAC3, #AF42F6)',
+                backgroundColor: colors.bgPrimary,
+                color: colors.textPrimary,
+                backgroundImage: `linear-gradient(${colors.bgPrimary}, ${colors.bgPrimary}), linear-gradient(to right, #00CAC3, #AF42F6)`,
                 backgroundOrigin: 'border-box',
                 backgroundClip: 'padding-box, border-box',
                 backgroundSize: '100% 100%, 100% 100%',
@@ -28,9 +33,10 @@ const ActionButton = ({
                 borderColor: 'transparent'
             }}
         >
-            <span className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#F6F8FC] mr-1 sm:mr-2"
+            <span className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full mr-1 sm:mr-2"
                 style={{
-                    backgroundImage: 'linear-gradient(#F6F8FC, #F6F8FC), linear-gradient(to right, #00CAC3, #AF42F6)',
+                    backgroundColor: colors.bgAccent,
+                    backgroundImage: `linear-gradient(${colors.bgAccent}, ${colors.bgAccent}), linear-gradient(to right, #00CAC3, #AF42F6)`,
                     backgroundOrigin: 'border-box',
                     backgroundClip: 'padding-box, border-box',
                     backgroundSize: '100% 100%, 100% 100%',

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext, useLocation } from 'react-router-dom';
-import { FiSettings, FiPlus, FiTrash2, FiX, FiEdit, FiFilter, FiGrid, FiClock } from 'react-icons/fi';
+import { FiSettings, FiPlus, FiTrash2, FiX, FiEdit, FiFilter, FiGrid, FiClock, FiCheckCircle } from 'react-icons/fi';
 import PageHeader from '../components/PageHeader';
 import { useDarkMode } from '../lib/DarkModeContext';
 import {
@@ -23,7 +23,7 @@ import {
 
 export const Modules = () => {
     const { user } = useOutletContext();
-    const { isDarkMode } = useDarkMode();
+    const { isDarkMode, colors } = useDarkMode();
     const location = useLocation();
     const [searchQuery, setSearchQuery] = useState('');
     const [establishments, setEstablishments] = useState([]);
@@ -261,23 +261,9 @@ export const Modules = () => {
     };
 
     const modalVariants = {
-        hidden: { y: 20, opacity: 0 },
-        visible: {
-            y: 0,
-            opacity: 1,
-            transition: {
-                type: "spring",
-                damping: 25,
-                stiffness: 500
-            }
-        },
-        exit: {
-            y: 20,
-            opacity: 0,
-            transition: {
-                duration: 0.2
-            }
-        }
+        hidden: { opacity: 0, scale: 0.95 },
+        visible: { opacity: 1, scale: 1, transition: { type: "spring", damping: 20 } },
+        exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }
     };
 
     const itemVariants = {
@@ -1110,18 +1096,21 @@ export const Modules = () => {
                             initial="hidden"
                             animate="visible"
                             exit="exit"
-                            style={{ backgroundColor: bgSecondary }}
-                            className="rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-[#EAEFFB]"
+                            className="rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border"
+                            style={{
+                                backgroundColor: colors.bgPrimary,
+                                borderColor: colors.borderColor
+                            }}
                             ref={confettiRef}
                         >
                             <div className="flex justify-between items-center mb-4">
-                                <h3 style={{ color: textPrimary }} className="text-xl font-bold">{activeModule.name} - Practice QCMs</h3>
+                                <h3 style={{ color: colors.textPrimary }} className="text-xl font-bold">{activeModule.name} - Practice QCMs</h3>
                                 <div className="flex items-center">
-                                    <div className="flex items-center mr-4 text-sm" style={{ color: textPrimary }}>
+                                    <div className="flex items-center mr-4 text-sm" style={{ color: colors.textPrimary }}>
                                         <FiClock className="mr-1" />
                                         <span>Session: {timeSpent} min</span>
                                         {activeModule.totalTimeSpent > 0 && (
-                                            <span className="ml-2 text-gray-500">Total: {activeModule.totalTimeSpent + timeSpent} min</span>
+                                            <span className="ml-2" style={{ color: colors.textSecondary }}>Total: {activeModule.totalTimeSpent + timeSpent} min</span>
                                         )}
                                     </div>
                                     <button onClick={handleCloseQcmModal} className="text-[#AF42F6] font-bold text-lg">&times;</button>
@@ -1130,16 +1119,24 @@ export const Modules = () => {
                             {!activeQcm ? (
                                 <div>
                                     {activeModule.savedQCMs && activeModule.savedQCMs.length > 0 ? (
-                                        <ul className="divide-y divide-[#EAEFFB]">
+                                        <ul className="divide-y" style={{ borderColor: colors.borderColor }}>
                                             {activeModule.savedQCMs.map(qcm => (
                                                 <li key={qcm.id} className="py-3 flex justify-between items-center">
                                                     <div className="flex items-center">
-                                                        <span className="font-semibold text-[#252525]">{qcm.name}</span>
+                                                        <span className="font-semibold" style={{ color: colors.textPrimary }}>{qcm.name}</span>
                                                         {qcm.score !== undefined && (
                                                             <span
-                                                                className={`ml-2 px-2 py-0.5 text-xs rounded-full ${qcm.score >= 80 ? 'bg-green-100 text-green-800' :
-                                                                    qcm.score >= 60 ? 'bg-yellow-100 text-yellow-800' :
-                                                                        'bg-red-100 text-red-800'
+                                                                className={`ml-2 px-2 py-0.5 text-xs rounded-full ${isDarkMode
+                                                                    ? (qcm.score >= 80
+                                                                        ? 'bg-green-900 text-green-100'
+                                                                        : qcm.score >= 60
+                                                                            ? 'bg-yellow-900 text-yellow-100'
+                                                                            : 'bg-red-900 text-red-100')
+                                                                    : (qcm.score >= 80
+                                                                        ? 'bg-green-100 text-green-800'
+                                                                        : qcm.score >= 60
+                                                                            ? 'bg-yellow-100 text-yellow-800'
+                                                                            : 'bg-red-100 text-red-800')
                                                                     }`}
                                                             >
                                                                 {qcm.score}%
@@ -1148,7 +1145,8 @@ export const Modules = () => {
                                                     </div>
                                                     <div className="flex items-center">
                                                         <button
-                                                            className="p-1 rounded-lg text-gray-500 hover:text-[#AF42F6]"
+                                                            className="p-1 rounded-lg hover:text-[#AF42F6]"
+                                                            style={{ color: colors.textSecondary }}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 handleEditQcm(qcm);
@@ -1157,7 +1155,8 @@ export const Modules = () => {
                                                             <FiEdit size={16} />
                                                         </button>
                                                         <button
-                                                            className="p-1 rounded-lg text-gray-500 hover:text-red-500 mx-1"
+                                                            className="p-1 rounded-lg hover:text-red-500 mx-1"
+                                                            style={{ color: colors.textSecondary }}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 handleDeleteQcm(qcm);
@@ -1177,20 +1176,23 @@ export const Modules = () => {
                                             ))}
                                         </ul>
                                     ) : (
-                                        <div className="text-gray-500 text-center py-8">No saved QCMs for this module.</div>
+                                        <div className="text-center py-8" style={{ color: colors.textSecondary }}>No saved QCMs for this module.</div>
                                     )}
                                 </div>
                             ) : (
-                                <div className="bg-[#F5F6FF] rounded-xl p-6 border border-[#EAEFFB] shadow mb-4">
-                                    <h4 className="text-lg font-bold mb-6 text-[#252525] text-center">{activeQcm.name}</h4>
+                                <div className="rounded-xl p-6 border shadow mb-4" style={{
+                                    backgroundColor: colors.bgAccent,
+                                    borderColor: colors.borderColor
+                                }}>
+                                    <h4 className="text-lg font-bold mb-6 text-center" style={{ color: colors.textPrimary }}>{activeQcm.name}</h4>
                                     <form onSubmit={e => { e.preventDefault(); handleSubmitQcm(); }}>
                                         {activeQcm.questions.map((q, i) => (
-                                            <div key={i} className="mb-8 bg-white p-6 rounded-xl shadow-sm">
-                                                <div className="font-semibold mb-4 text-lg">{i + 1}. {q.question}</div>
+                                            <div key={i} className="mb-8 p-6 rounded-xl shadow-sm" style={{ backgroundColor: colors.bgPrimary }}>
+                                                <div className="font-semibold mb-4 text-lg" style={{ color: colors.textPrimary }}>{i + 1}. {q.question}</div>
 
                                                 {q.code && (
-                                                    <div className="mb-4 bg-gray-50 rounded-lg p-4 overflow-x-auto">
-                                                        <pre className="text-sm font-mono text-gray-700 whitespace-pre-wrap">{q.code}</pre>
+                                                    <div className="mb-4 rounded-lg p-4 overflow-x-auto" style={{ backgroundColor: colors.bgSecondary }}>
+                                                        <pre className="text-sm font-mono whitespace-pre-wrap" style={{ color: colors.textPrimary }}>{q.code}</pre>
                                                     </div>
                                                 )}
 
@@ -1199,23 +1201,30 @@ export const Modules = () => {
                                                         const letter = String.fromCharCode(65 + j);
                                                         let highlight = '';
                                                         let textColor = '';
+                                                        let borderColor = '';
 
                                                         if (showScore) {
                                                             if (letter === q.answer) {
                                                                 // Correct answer
-                                                                highlight = 'bg-green-100 border-green-500';
-                                                                textColor = 'text-green-700';
+                                                                highlight = isDarkMode ? 'bg-green-900' : 'bg-green-100';
+                                                                borderColor = isDarkMode ? 'border-green-700' : 'border-green-500';
+                                                                textColor = isDarkMode ? 'text-green-100' : 'text-green-700';
                                                             } else if (userAnswers[i] === letter) {
                                                                 // User's incorrect answer
-                                                                highlight = 'bg-red-100 border-red-500';
-                                                                textColor = 'text-red-700';
+                                                                highlight = isDarkMode ? 'bg-red-900' : 'bg-red-100';
+                                                                borderColor = isDarkMode ? 'border-red-700' : 'border-red-500';
+                                                                textColor = isDarkMode ? 'text-red-100' : 'text-red-700';
                                                             }
                                                         }
 
                                                         return (
                                                             <div
                                                                 key={j}
-                                                                className={`${highlight} border rounded-lg transition-all duration-200 hover:shadow-md ${!showScore ? 'hover:border-[#AF42F6]' : ''}`}
+                                                                className={`${highlight} border rounded-lg transition-all duration-200 hover:shadow-md ${!showScore ? 'hover:border-[#AF42F6]' : borderColor}`}
+                                                                style={{
+                                                                    borderColor: showScore ? '' : colors.borderColor,
+                                                                    backgroundColor: !highlight ? colors.bgSecondary : ''
+                                                                }}
                                                             >
                                                                 <label className="flex items-center cursor-pointer w-full p-3">
                                                                     <input
@@ -1227,7 +1236,7 @@ export const Modules = () => {
                                                                         className="form-radio text-[#AF42F6] mr-3 h-4 w-4"
                                                                         disabled={showScore}
                                                                     />
-                                                                    <div className={`${textColor}`}>
+                                                                    <div className={`${textColor}`} style={{ color: !textColor ? colors.textPrimary : '' }}>
                                                                         <span className="font-medium mr-2">{letter})</span>
                                                                         {opt}
                                                                     </div>
@@ -1252,7 +1261,7 @@ export const Modules = () => {
                                                 </motion.button>
                                             ) : (
                                                 <div className="text-center">
-                                                    <div className="text-2xl font-bold text-[#00CAC3] mb-4">Score: {score} / {activeQcm.questions.length}</div>
+                                                    <div className="text-2xl font-bold mb-4" style={{ color: '#00CAC3' }}>Score: {score} / {activeQcm.questions.length}</div>
                                                     <div className="flex justify-center gap-4">
                                                         <motion.button
                                                             whileHover={{ scale: 1.03 }}

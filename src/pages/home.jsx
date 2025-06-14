@@ -10,24 +10,16 @@ import QuickActions from '../components/QuickActions';
 import ProgressSection from '../components/ProgressSection';
 import ReportCard from '../components/ReportCard';
 import RecentsCard from '../components/RecentsCard';
-import { getUserModules, getUserPDFs, getTotalTimeSpent, getModuleTimeTracking } from '../lib/appwriteService';
+import { getUserModules, getUserPDFs, getTotalTimeSpent, getModuleTimeTracking, getModuleQCMs } from '../lib/appwriteService';
 
 export const Home = () => {
     const { user, greeting } = useOutletContext();
-    const { isDarkMode } = useDarkMode();
+    const { isDarkMode, colors } = useDarkMode();
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [recentDocuments, setRecentDocuments] = useState([]);
     const [progressModules, setProgressModules] = useState([]);
     const [reportData, setReportData] = useState([]);
-
-    // Background colors based on dark mode
-    const bgPrimary = isDarkMode ? "#1E1E1E" : "#F5F6FF";
-    const bgSecondary = isDarkMode ? "#2D2D2D" : "#FFFFFF";
-    const bgAccent = isDarkMode ? "#3D3D3D" : "#F6F8FC";
-    const textPrimary = isDarkMode ? "#FFFFFF" : "#252525";
-    const textSecondary = isDarkMode ? "#E0E0E0" : "#6B7280";
-    const borderColor = isDarkMode ? "#3D3D3D" : "#E0E7EF";
 
     useEffect(() => {
         // Fetch modules and recent documents from Appwrite
@@ -36,10 +28,23 @@ export const Home = () => {
                 // Fetch modules
                 const modules = await getUserModules();
 
+                // Process modules to get QCM counts
+                const processedModules = await Promise.all(modules.map(async module => {
+                    // Fetch QCMs for this module
+                    const qcms = await getModuleQCMs(module.$id);
+
+                    return {
+                        ...module,
+                        completedQcms: module.completedQcms || 0,
+                        totalDocs: module.qcmCount || 0,
+                        savedQCMsCount: qcms.length // Track the actual number of saved QCMs
+                    };
+                }));
+
                 // Sort by progress percentage (descending)
-                const sortedModules = [...modules].sort((a, b) => {
-                    const progressA = (a.completedQcms || 0) / ((a.qcmCount || 1));
-                    const progressB = (b.completedQcms || 0) / ((b.qcmCount || 1));
+                const sortedModules = [...processedModules].sort((a, b) => {
+                    const progressA = (a.savedQCMsCount || 0) / 10;
+                    const progressB = (b.savedQCMsCount || 0) / 10;
                     return progressB - progressA;
                 }).slice(0, 4); // Limit to 4 modules
 
@@ -135,7 +140,7 @@ export const Home = () => {
             initial="hidden"
             animate="visible"
             className="px-4 sm:px-6 md:px-8 py-6 md:py-8"
-            style={{ backgroundColor: isDarkMode ? "#121212" : "transparent" }}
+            style={{ backgroundColor: 'transparent' }}
         >
             {/* Header */}
             <PageHeader
@@ -146,21 +151,11 @@ export const Home = () => {
             />
 
             {/* Quick Action Buttons */}
-            <QuickActions
-                isDarkMode={isDarkMode}
-                bgColor={bgSecondary}
-                textColor={textPrimary}
-                textSecondary={textSecondary}
-            />
+            <QuickActions />
 
             {/* Progress Section */}
             <ProgressSection
                 modules={progressModules}
-                isDarkMode={isDarkMode}
-                bgColor={bgSecondary}
-                textColor={textPrimary}
-                textSecondary={textSecondary}
-                bgPrimary={bgPrimary}
                 onPractice={handlePractice}
             />
 
@@ -169,13 +164,7 @@ export const Home = () => {
                 className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8"
             >
                 {/* Report Section */}
-                <ReportCard
-                    reportData={reportData}
-                    isDarkMode={isDarkMode}
-                    bgColor={bgSecondary}
-                    textColor={textPrimary}
-                    textSecondary={textSecondary}
-                />
+                <ReportCard reportData={reportData} />
 
                 {/* Recents Section */}
                 <RecentsCard documents={recentDocuments} />
