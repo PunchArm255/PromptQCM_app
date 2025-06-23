@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from 'rea
 import { getCurrentUser } from './lib/appwrite';
 import { useState, useEffect } from 'react';
 import { DarkModeProvider, useDarkMode } from './lib/DarkModeContext';
+import { LanguageProvider } from './lib/LanguageContext';
 
 // Pages
 import { Welcome } from './pages/welcome';
@@ -21,35 +22,37 @@ import Layout from './components/Layout';
 
 export default function App() {
   return (
-    <DarkModeProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<Welcome />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/auth-callback" element={<AuthCallback />} />
+    <LanguageProvider>
+      <DarkModeProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Welcome />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/auth-callback" element={<AuthCallback />} />
 
-          {/* Protected routes with Layout - using a single Layout instance for all routes */}
-          <Route element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }>
-            <Route path="/home" element={<Home />} />
-            <Route path="/library" element={<Library />} />
-            <Route path="/modules" element={<Modules />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/generate" element={<Generate />} />
-            <Route path="/upload" element={<Upload />} />
-          </Route>
+            {/* Protected routes with Layout - using a single Layout instance for all routes */}
+            <Route element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }>
+              <Route path="/home" element={<Home />} />
+              <Route path="/library" element={<Library />} />
+              <Route path="/modules" element={<Modules />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/generate" element={<Generate />} />
+              <Route path="/upload" element={<Upload />} />
+            </Route>
 
-          {/* Redirect any unknown routes to home */}
-          <Route path="*" element={<Navigate to="/home" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </DarkModeProvider>
+            {/* Redirect any unknown routes to home */}
+            <Route path="*" element={<Navigate to="/home" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </DarkModeProvider>
+    </LanguageProvider>
   );
 }
 

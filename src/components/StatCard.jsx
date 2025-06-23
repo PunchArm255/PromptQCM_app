@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { useLanguage } from '../lib/LanguageContext';
 
 const StatCard = ({
     item,
@@ -7,6 +8,7 @@ const StatCard = ({
     maxHours
 }) => {
     const { isDarkMode, colors } = useDarkMode();
+    const { translate } = useLanguage();
 
     // Calculate the percentage but cap it at 100% (which is 20h)
     const MAX_HOURS = 20;
@@ -91,8 +93,8 @@ const StatCard = ({
                     </span>
                 </motion.div>
             </div>
-            <p style={{ color: colors.textPrimary }} className="text-center text-sm sm:text-base font-medium">{item.title}</p>
-            <p style={{ color: colors.textSecondary }} className="text-center text-xs">of 20h</p>
+            <p style={{ color: colors.textPrimary }} className="text-center text-sm sm:text-base font-medium">{translate(item.title)}</p>
+            <p style={{ color: colors.textSecondary }} className="text-center text-xs">{translate("of 20h")}</p>
         </motion.div>
     );
 };

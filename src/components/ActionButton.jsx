@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { useLanguage } from '../lib/LanguageContext';
 
 const ActionButton = ({
     to,
@@ -10,6 +11,7 @@ const ActionButton = ({
     onClick
 }) => {
     const { isDarkMode, colors } = useDarkMode();
+    const { translate } = useLanguage();
 
     // Use the onClick prop if provided, otherwise create a Link component
     const ButtonContent = (
@@ -47,7 +49,7 @@ const ActionButton = ({
             >
                 {icon}
             </span>
-            {text}
+            {translate(text)}
         </motion.button>
     );
 

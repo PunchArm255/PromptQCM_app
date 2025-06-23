@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { useLanguage } from '../lib/LanguageContext';
 import ProgressModule from './ProgressModule';
 
 const ProgressSection = ({ modules, onPractice }) => {
@@ -9,6 +10,7 @@ const ProgressSection = ({ modules, onPractice }) => {
     const [activeSlide, setActiveSlide] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
     const { colors } = useDarkMode();
+    const { translate } = useLanguage();
 
     useEffect(() => {
         // Check if viewport is mobile
@@ -75,7 +77,7 @@ const ProgressSection = ({ modules, onPractice }) => {
             className="mb-8"
         >
             <div className="flex justify-between items-center mb-4">
-                <h2 style={{ color: colors.textPrimary }} className="text-xl font-bold">Progress</h2>
+                <h2 style={{ color: colors.textPrimary }} className="text-xl font-bold">{translate("Progress")}</h2>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => scroll('left')}
@@ -110,7 +112,7 @@ const ProgressSection = ({ modules, onPractice }) => {
                             }}
                             className="font-semibold py-2 px-4 rounded-lg shadow-sm ml-2"
                         >
-                            View All
+                            {translate("View All")}
                         </motion.div>
                     </Link>
                 </div>

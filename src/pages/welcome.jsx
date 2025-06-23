@@ -3,12 +3,14 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { account } from '../lib/appwrite';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { useLanguage } from '../lib/LanguageContext';
 import Logo from '../assets/icons/logo.svg';
 import LogoDark from '../assets/icons/logoDark.svg';
 
 export const Welcome = () => {
     const navigate = useNavigate();
     const { isDarkMode, colors } = useDarkMode();
+    const { translate } = useLanguage();
 
     // Check if user is already logged in
     useEffect(() => {
@@ -54,7 +56,7 @@ export const Welcome = () => {
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#00CAC3] rounded-full opacity-10 blur-3xl"></div>
                 <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#AF42F6] rounded-full opacity-10 blur-3xl"></div>
 
-                <h1 className="text-3xl font-bold text-center mb-6" style={{ color: colors.textPrimary }}>Welcome to PromptQCM</h1>
+                <h1 className="text-3xl font-bold text-center mb-6" style={{ color: colors.textPrimary }}>{translate("Welcome to PromptQCM")}</h1>
 
                 <motion.div
                     whileHover={{ scale: 1.02 }}
@@ -67,7 +69,7 @@ export const Welcome = () => {
                                 background: "linear-gradient(to right, #00CAC3, #AF42F6)"
                             }}
                         >
-                            Continue with Email
+                            {translate("Continue with Email")}
                         </button>
                     </Link>
                 </motion.div>

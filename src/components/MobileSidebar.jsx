@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FiLogOut } from 'react-icons/fi';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { useLanguage } from '../lib/LanguageContext';
 import { getProfileImageUrl } from '../lib/appwrite';
 import { useState, useEffect } from 'react';
 import Logo from '../assets/icons/logo.svg';
@@ -21,6 +22,7 @@ import ProfilePlaceholderDark from '../assets/icons/profileDark.svg';
 
 const MobileSidebar = ({ user, activeNavItem, toggleMobileMenu, handleLogout, isLoading }) => {
     const { isDarkMode, colors } = useDarkMode();
+    const { translate } = useLanguage();
     const [profileImageUrl, setProfileImageUrl] = useState(null);
 
     useEffect(() => {
@@ -139,7 +141,7 @@ const MobileSidebar = ({ user, activeNavItem, toggleMobileMenu, handleLogout, is
                                 }}
                             >
                                 <img src={item.icon} alt={item.name} className="w-5 h-5 mr-3" />
-                                <span className="font-medium">{item.name}</span>
+                                <span className="font-medium">{translate(item.name)}</span>
                             </Link>
                         </motion.div>
                     ))}
@@ -195,7 +197,7 @@ const MobileSidebar = ({ user, activeNavItem, toggleMobileMenu, handleLogout, is
                     className="mt-4 flex items-center justify-center gap-2 text-sm p-3 w-full rounded-lg disabled:opacity-50"
                 >
                     <FiLogOut size={16} />
-                    <span>{isLoading ? 'Logging out...' : 'Logout'}</span>
+                    <span>{isLoading ? translate('Logging out...') : translate('Logout')}</span>
                 </motion.button>
             </motion.div>
         </motion.div>

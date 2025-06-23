@@ -4,6 +4,7 @@ import { useOutletContext, useNavigate } from 'react-router-dom';
 import { FiMoon, FiSun, FiGlobe, FiUser, FiMail, FiLock, FiLogOut, FiCheckCircle, FiBell, FiUpload } from 'react-icons/fi';
 import PageHeader from '../components/PageHeader';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { useLanguage } from '../lib/LanguageContext';
 import { account, updateUserProfile, createUserProfile, uploadProfileImage, getProfileImageUrl, logoutUser } from '../lib/appwrite';
 import LogoDark from '../assets/icons/logoDark.svg';
 import Logo from '../assets/icons/logo.svg';
@@ -13,8 +14,8 @@ import Asmae from '../assets/icons/Asmae.png';
 export const Settings = () => {
     const { user } = useOutletContext();
     const { isDarkMode, toggleDarkMode, colors } = useDarkMode();
+    const { language, changeLanguage, translate } = useLanguage();
     const [searchQuery, setSearchQuery] = useState('');
-    const [language, setLanguage] = useState('English');
     const [accountSettings, setAccountSettings] = useState({
         name: user?.name || 'User',
         email: user?.email || '',
@@ -36,12 +37,7 @@ export const Settings = () => {
 
     useEffect(() => {
         // Load settings from localStorage
-        const storedLanguage = localStorage.getItem('qcm_language');
         const storedNotifications = localStorage.getItem('qcm_notifications');
-
-        if (storedLanguage) {
-            setLanguage(storedLanguage);
-        }
 
         if (storedNotifications) {
             setNotifications(JSON.parse(storedNotifications) === true);
@@ -75,8 +71,7 @@ export const Settings = () => {
 
     const handleLanguageChange = (e) => {
         const newLanguage = e.target.value;
-        setLanguage(newLanguage);
-        localStorage.setItem('qcm_language', newLanguage);
+        changeLanguage(newLanguage);
     };
 
     const handleNotificationChange = () => {
@@ -252,7 +247,7 @@ export const Settings = () => {
         >
             {/* Header */}
             <PageHeader
-                greeting="Settings"
+                greeting={translate("Settings")}
                 showExclamation={false}
                 onSearch={handleSearch}
                 showSearchBar={false}
@@ -266,7 +261,7 @@ export const Settings = () => {
                     className="md:col-span-1"
                 >
                     <div style={{ backgroundColor: colors.bgPrimary }} className="rounded-2xl p-4 sm:p-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)]">
-                        <h2 style={{ color: colors.textPrimary }} className="text-lg font-bold mb-4">Settings</h2>
+                        <h2 style={{ color: colors.textPrimary }} className="text-lg font-bold mb-4">{translate("Settings")}</h2>
                         <div className="space-y-2">
                             <button
                                 onClick={() => setActiveTab('account')}
@@ -276,7 +271,7 @@ export const Settings = () => {
                                 }}
                                 className="w-full text-left py-2 px-3 rounded-lg font-medium"
                             >
-                                Account Settings
+                                {translate("Account Settings")}
                             </button>
                             <button
                                 onClick={() => setActiveTab('about')}
@@ -286,7 +281,7 @@ export const Settings = () => {
                                 }}
                                 className="w-full text-left py-2 px-3 rounded-lg hover:bg-opacity-80 transition-colors"
                             >
-                                About
+                                {translate("About")}
                             </button>
                         </div>
                     </div>
@@ -316,7 +311,7 @@ export const Settings = () => {
                                 color: colors.success
                             }}>
                                 <FiCheckCircle className="mr-2" />
-                                {successMessage}
+                                {translate(successMessage)}
                             </div>
                         )}
 
@@ -324,7 +319,7 @@ export const Settings = () => {
                             <>
                                 {/* Account Settings Section */}
                                 <div className="mb-8">
-                                    <h2 style={{ color: colors.textPrimary }} className="text-xl font-bold mb-6">Account Settings</h2>
+                                    <h2 style={{ color: colors.textPrimary }} className="text-xl font-bold mb-6">{translate("Account Settings")}</h2>
 
                                     {/* Profile Picture */}
                                     <div className="flex flex-col items-center mb-8">
@@ -357,7 +352,7 @@ export const Settings = () => {
                                             className="hidden"
                                         />
                                         <p style={{ color: colors.textSecondary }} className="text-sm">
-                                            Click to change profile picture
+                                            {translate("Click to change profile picture")}
                                         </p>
                                     </div>
 
@@ -369,7 +364,7 @@ export const Settings = () => {
                                                     <FiUser className="text-[#AF42F6]" />
                                                 </div>
                                                 <div>
-                                                    <p style={{ color: colors.textSecondary }} className="text-sm">Full Name</p>
+                                                    <p style={{ color: colors.textSecondary }} className="text-sm">{translate("Full Name")}</p>
                                                     {isEditingName ? (
                                                         <input
                                                             type="text"
@@ -399,7 +394,7 @@ export const Settings = () => {
                                                 style={{ backgroundColor: colors.bgAccent, color: colors.purple }}
                                                 className="px-3 py-1.5 text-sm rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
                                             >
-                                                {isLoading && isEditingName ? 'Saving...' : 'Edit'}
+                                                {isLoading && isEditingName ? translate("Saving...") : translate("Edit")}
                                             </button>
                                         </div>
 
@@ -410,7 +405,7 @@ export const Settings = () => {
                                                     <FiMail className="text-[#AF42F6]" />
                                                 </div>
                                                 <div>
-                                                    <p style={{ color: colors.textSecondary }} className="text-sm">Email Address</p>
+                                                    <p style={{ color: colors.textSecondary }} className="text-sm">{translate("Email Address")}</p>
                                                     {isEditingEmail ? (
                                                         <input
                                                             type="email"
@@ -440,7 +435,7 @@ export const Settings = () => {
                                                 style={{ backgroundColor: colors.bgAccent, color: colors.purple }}
                                                 className="px-3 py-1.5 text-sm rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
                                             >
-                                                {isLoading && isEditingEmail ? 'Saving...' : 'Edit'}
+                                                {isLoading && isEditingEmail ? translate("Saving...") : translate("Edit")}
                                             </button>
                                         </div>
 
@@ -451,7 +446,7 @@ export const Settings = () => {
                                                     <FiLock className="text-[#AF42F6]" />
                                                 </div>
                                                 <div>
-                                                    <p style={{ color: colors.textSecondary }} className="text-sm">Password</p>
+                                                    <p style={{ color: colors.textSecondary }} className="text-sm">{translate("Password")}</p>
                                                     {isEditingPassword ? (
                                                         <input
                                                             type="password"
@@ -462,7 +457,7 @@ export const Settings = () => {
                                                             }}
                                                             className="font-medium focus:outline-none"
                                                             defaultValue=""
-                                                            placeholder="Enter new password"
+                                                            placeholder={translate("Enter new password")}
                                                             autoFocus
                                                             onBlur={(e) => saveAccountSetting('password', e.target.value)}
                                                             onKeyPress={(e) => {
@@ -482,7 +477,7 @@ export const Settings = () => {
                                                 style={{ backgroundColor: colors.bgAccent, color: colors.purple }}
                                                 className="px-3 py-1.5 text-sm rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
                                             >
-                                                {isLoading && isEditingPassword ? 'Saving...' : 'Change'}
+                                                {isLoading && isEditingPassword ? translate("Saving...") : translate("Change")}
                                             </button>
                                         </div>
 
@@ -497,14 +492,14 @@ export const Settings = () => {
                                             className="w-full mt-4 p-3 flex items-center justify-center gap-2 rounded-xl hover:opacity-90 transition-colors disabled:opacity-50"
                                         >
                                             <FiLogOut />
-                                            <span>{isLoading ? 'Logging out...' : 'Logout'}</span>
+                                            <span>{isLoading ? translate("Logging out...") : translate("Logout")}</span>
                                         </button>
                                     </div>
                                 </div>
 
                                 {/* App Settings Section */}
                                 <div>
-                                    <h2 style={{ color: colors.textPrimary }} className="text-xl font-bold mb-4">App Settings</h2>
+                                    <h2 style={{ color: colors.textPrimary }} className="text-xl font-bold mb-4">{translate("App Settings")}</h2>
                                     <div className="space-y-4">
                                         {/* Dark Mode Toggle */}
                                         <div style={{ backgroundColor: colors.bgSecondary }} className="flex items-center justify-between p-4 rounded-xl">
@@ -517,9 +512,9 @@ export const Settings = () => {
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <p style={{ color: colors.textPrimary }} className="font-medium">Dark Mode</p>
+                                                    <p style={{ color: colors.textPrimary }} className="font-medium">{translate("Dark Mode")}</p>
                                                     <p style={{ color: colors.textSecondary }} className="text-sm">
-                                                        {isDarkMode ? 'Currently enabled' : 'Currently disabled'}
+                                                        {translate(isDarkMode ? "Currently enabled" : "Currently disabled")}
                                                     </p>
                                                 </div>
                                             </div>
@@ -541,9 +536,9 @@ export const Settings = () => {
                                                     <FiGlobe className="text-[#AF42F6]" />
                                                 </div>
                                                 <div>
-                                                    <p style={{ color: colors.textPrimary }} className="font-medium">Language</p>
+                                                    <p style={{ color: colors.textPrimary }} className="font-medium">{translate("Language")}</p>
                                                     <p style={{ color: colors.textSecondary }} className="text-sm">
-                                                        Choose your preferred language
+                                                        {translate("Choose your preferred language")}
                                                     </p>
                                                 </div>
                                             </div>
@@ -565,9 +560,9 @@ export const Settings = () => {
                                                     <FiBell className="text-[#AF42F6]" />
                                                 </div>
                                                 <div>
-                                                    <p style={{ color: colors.textPrimary }} className="font-medium">Notifications</p>
+                                                    <p style={{ color: colors.textPrimary }} className="font-medium">{translate("Notifications")}</p>
                                                     <p style={{ color: colors.textSecondary }} className="text-sm">
-                                                        {notifications ? 'Currently enabled' : 'Currently disabled'}
+                                                        {translate(notifications ? "Currently enabled" : "Currently disabled")}
                                                     </p>
                                                 </div>
                                             </div>
@@ -597,14 +592,14 @@ export const Settings = () => {
                                     style={{ color: colors.textSecondary }}
                                     className="text-sm mb-8"
                                 >
-                                    Prototype v0.1
+                                    {translate("Prototype v0.1")}
                                 </p>
 
                                 <h3
                                     style={{ color: colors.textPrimary }}
                                     className="text-xl font-semibold mb-6"
                                 >
-                                    Meet the Team
+                                    {translate("Meet the Team")}
                                 </h3>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
@@ -630,13 +625,13 @@ export const Settings = () => {
                                             style={{ color: colors.textSecondary }}
                                             className="text-sm mb-3"
                                         >
-                                            Lead Developer & Designer
+                                            {translate("Lead Developer & Designer")}
                                         </p>
                                         <p
                                             style={{ color: colors.textSecondary }}
                                             className="text-sm text-center"
                                         >
-                                            Responsible for the full development process and UI/UX design of the application.
+                                            {translate("Responsible for the full development process and UI/UX design of the application.")}
                                         </p>
                                     </div>
 
@@ -662,13 +657,13 @@ export const Settings = () => {
                                             style={{ color: colors.textSecondary }}
                                             className="text-sm mb-3"
                                         >
-                                            Design Assistant & QA Lead
+                                            {translate("Design Assistant & QA Lead")}
                                         </p>
                                         <p
                                             style={{ color: colors.textSecondary }}
                                             className="text-sm text-center"
                                         >
-                                            Assisted with frontend design and led the organization and testing efforts.
+                                            {translate("Assisted with frontend design and led the organization and testing efforts.")}
                                         </p>
                                     </div>
                                 </div>
@@ -681,7 +676,7 @@ export const Settings = () => {
                                     className="mt-8 p-4 rounded-lg max-w-2xl text-left"
                                 >
                                     <p style={{ color: colors.textSecondary }} className="text-sm">
-                                        PromptQCM is an innovative application designed to help students prepare for their exams through interactive multiple-choice questions. Our mission is to make studying more efficient and engaging through modern technology.
+                                        {translate("PromptQCM is an innovative application designed to help students prepare for their exams through interactive multiple-choice questions. Our mission is to make studying more efficient and engaging through modern technology.")}
                                     </p>
                                 </div>
 
@@ -689,7 +684,7 @@ export const Settings = () => {
                                     style={{ color: colors.textSecondary }}
                                     className="text-sm mt-8"
                                 >
-                                    © 2025 PromptQCM. All rights reserved.
+                                    {translate("© 2025 PromptQCM. All rights reserved.")}
                                 </p>
                             </div>
                         )}

@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getCurrentUser, logoutUser } from '../lib/appwrite';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { useLanguage } from '../lib/LanguageContext';
 import Sidebar from './Sidebar';
 import MobileSidebar from './MobileSidebar';
 import Logo from '../assets/icons/logo.svg';
@@ -15,6 +16,7 @@ const Layout = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { isDarkMode, colors } = useDarkMode();
+    const { translate } = useLanguage();
     const navigate = useNavigate();
     const location = useLocation();
 

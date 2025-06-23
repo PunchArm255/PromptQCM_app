@@ -5,6 +5,7 @@ import { account, oAuthProviders } from '../lib/appwrite';
 import Logo from '../assets/icons/logo.svg';
 import LogoDark from '../assets/icons/logoDark.svg';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { useLanguage } from '../lib/LanguageContext';
 import { FcGoogle } from 'react-icons/fc';
 import { AiFillApple } from 'react-icons/ai';
 
@@ -16,6 +17,7 @@ export const SignIn = () => {
     const [oauthLoading, setOauthLoading] = useState('');
     const navigate = useNavigate();
     const { isDarkMode } = useDarkMode();
+    const { translate } = useLanguage();
 
     // Check if user is already logged in
     useEffect(() => {
@@ -90,8 +92,8 @@ export const SignIn = () => {
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#00CAC3] rounded-full opacity-10 blur-3xl"></div>
                 <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#AF42F6] rounded-full opacity-10 blur-3xl"></div>
 
-                <h1 className={`text-3xl font-bold text-center mb-2 ${isDarkMode ? 'text-white' : 'text-[#252525]'}`}>Welcome Back!</h1>
-                <p className={`text-center mb-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Sign in to your account</p>
+                <h1 className={`text-3xl font-bold text-center mb-2 ${isDarkMode ? 'text-white' : 'text-[#252525]'}`}>{translate("Welcome Back!")}</h1>
+                <p className={`text-center mb-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{translate("Sign in to your account")}</p>
 
                 {error && (
                     <motion.div
@@ -106,7 +108,7 @@ export const SignIn = () => {
                 <form onSubmit={handleSignIn} className="space-y-5">
                     <div>
                         <label className={`block text-sm font-medium mb-1 ml-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            Email Address
+                            {translate("Email Address")}
                         </label>
                         <input
                             type="email"
@@ -114,12 +116,12 @@ export const SignIn = () => {
                             onChange={(e) => setEmail(e.target.value)}
                             required
                             className={`w-full py-3 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#AF42F6] focus:border-transparent transition-all ${isDarkMode ? 'bg-[#23272F] border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-200'}`}
-                            placeholder="Enter your email"
+                            placeholder={translate("Enter your email")}
                         />
                     </div>
                     <div>
                         <label className={`block text-sm font-medium mb-1 ml-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            Password
+                            {translate("Password")}
                         </label>
                         <input
                             type="password"
@@ -127,7 +129,7 @@ export const SignIn = () => {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             className={`w-full py-3 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#AF42F6] focus:border-transparent transition-all ${isDarkMode ? 'bg-[#23272F] border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-200'}`}
-                            placeholder="Enter your password"
+                            placeholder={translate("Enter your password")}
                         />
                     </div>
                     <div className="pt-2">
@@ -141,7 +143,7 @@ export const SignIn = () => {
                                 background: "linear-gradient(to right, #00CAC3, #AF42F6)"
                             }}
                         >
-                            {isLoading ? 'Signing in...' : 'Sign In'}
+                            {isLoading ? translate("Signing in...") : translate("Sign In")}
                         </motion.button>
                     </div>
                 </form>
@@ -149,7 +151,7 @@ export const SignIn = () => {
                 {/* Divider */}
                 <div className="flex items-center my-6">
                     <div className={`flex-grow h-px ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
-                    <span className={`px-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>or continue with</span>
+                    <span className={`px-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{translate("or continue with")}</span>
                     <div className={`flex-grow h-px ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
                 </div>
 
@@ -185,7 +187,7 @@ export const SignIn = () => {
 
                 <div className="text-center">
                     <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        Don't have an account?{' '}
+                        {translate("Don't have an account?")}{' '}
                         <Link
                             to="/signup"
                             className="font-semibold"
@@ -195,7 +197,7 @@ export const SignIn = () => {
                                 WebkitTextFillColor: "transparent"
                             }}
                         >
-                            Sign Up
+                            {translate("Sign Up")}
                         </Link>
                     </p>
                 </div>

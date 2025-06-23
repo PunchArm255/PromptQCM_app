@@ -3,6 +3,7 @@ import ActionButton from './ActionButton';
 import GenerateIcon from '../assets/icons/generate.svg';
 import UploadIcon from '../assets/icons/upload.svg';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { useLanguage } from '../lib/LanguageContext';
 import GenerateIconDark from '../assets/icons/generateDark.svg';
 import UploadIconDark from '../assets/icons/uploadDark.svg';
 
@@ -17,6 +18,7 @@ const QuickActions = () => {
     };
 
     const { isDarkMode } = useDarkMode();
+    const { translate } = useLanguage();
 
     return (
         <motion.div
@@ -26,13 +28,13 @@ const QuickActions = () => {
             <ActionButton
                 to="/generate"
                 text="Generate QCM"
-                icon={<img src={isDarkMode ? GenerateIconDark : GenerateIcon} alt="Generate QCM" className="w-3 h-3 sm:w-4 sm:h-4" />}
+                icon={<img src={isDarkMode ? GenerateIconDark : GenerateIcon} alt={translate("Generate QCM")} className="w-3 h-3 sm:w-4 sm:h-4" />}
             />
 
             <ActionButton
                 to="/upload"
-                text="Upload QCM"
-                icon={<img src={isDarkMode ? UploadIconDark : UploadIcon} alt="Upload QCM" className="w-3 h-3 sm:w-4 sm:h-4" />}
+                text="Upload Document"
+                icon={<img src={isDarkMode ? UploadIconDark : UploadIcon} alt={translate("Upload Document")} className="w-3 h-3 sm:w-4 sm:h-4" />}
             />
         </motion.div>
     );

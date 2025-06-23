@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { useLanguage } from '../lib/LanguageContext';
 import DocIcon from '../assets/icons/doc.svg';
 import DocIconDark from '../assets/icons/docDark.svg';
 
 const DocumentCard = ({ document, index, onClick, isSelected }) => {
     const { isDarkMode, colors } = useDarkMode();
+    const { translate } = useLanguage();
 
     const itemVariants = {
         hidden: { y: 20, opacity: 0 },
@@ -23,7 +25,7 @@ const DocumentCard = ({ document, index, onClick, isSelected }) => {
     };
 
     // Get file name from metadata or fallback to Appwrite storage file name
-    const fileName = document.fileName || document.name || "Untitled PDF";
+    const fileName = document.fileName || document.name || translate("Untitled PDF");
 
     return (
         <motion.div
@@ -41,7 +43,7 @@ const DocumentCard = ({ document, index, onClick, isSelected }) => {
                 style={{ backgroundColor: isDarkMode ? "#4B5563" : "#EDF2F7" }}
                 className="w-10 h-10 rounded-lg flex items-center justify-center mr-3"
             >
-                <img src={isDarkMode ? DocIconDark : DocIcon} alt="Document" className="w-5 h-5" />
+                <img src={isDarkMode ? DocIconDark : DocIcon} alt={translate("Document")} className="w-5 h-5" />
             </div>
             <div>
                 <p style={{ color: colors.textPrimary }} className="font-medium">{fileName}</p>

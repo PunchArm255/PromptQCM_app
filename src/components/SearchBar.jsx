@@ -1,16 +1,42 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { useLanguage } from '../lib/LanguageContext';
 import SearchIcon from '../assets/icons/search.svg';
 import SearchIconDark from '../assets/icons/searchDark.svg';
 
-const SearchBar = ({ onSearch }) => {
-    const [searchQuery, setSearchQuery] = useState('');
+const SearchBar = ({ onSearch, value = '', onClear }) => {
+    const [searchQuery, setSearchQuery] = useState(value);
     const { isDarkMode, colors } = useDarkMode();
+    const { translate } = useLanguage();
+
+    // Update internal state when external value changes
+    useEffect(() => {
+        setSearchQuery(value);
+    }, [value]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
         onSearch(searchQuery);
+    };
+
+    const handleChange = (e) => {
+        const newValue = e.target.value;
+        setSearchQuery(newValue);
+
+        // If the search field is cleared, also notify parent
+        if (newValue === '' && onClear) {
+            onClear();
+        }
+
+        // For real-time search, uncomment this line
+        // if (newValue.length > 2) onSearch(newValue);
+    };
+
+    const handleClear = () => {
+        setSearchQuery('');
+        if (onClear) onClear();
+        onSearch('');
     };
 
     return (
@@ -25,9 +51,9 @@ const SearchBar = ({ onSearch }) => {
                 <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search for a file..."
-                    className="w-full pl-10 pr-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-transparent focus:border-transparent focus:shadow-md peer text-sm md:text-base"
+                    onChange={handleChange}
+                    placeholder={translate("Search...")}
+                    className="w-full pl-10 pr-12 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-transparent focus:border-transparent focus:shadow-md peer text-sm md:text-base"
                     style={{
                         backgroundColor: isDarkMode ? colors.bgAccent : colors.bgPrimary,
                         color: colors.textPrimary,
@@ -45,6 +71,17 @@ const SearchBar = ({ onSearch }) => {
                     alt="Search"
                     className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4"
                 />
+
+                {/* Clear button */}
+                {searchQuery && (
+                    <button
+                        type="button"
+                        onClick={handleClear}
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    >
+                        <span style={{ color: colors.textSecondary }}>×</span>
+                    </button>
+                )}
             </div>
             <motion.button
                 whileHover={{ scale: 1.03 }}
@@ -62,7 +99,7 @@ const SearchBar = ({ onSearch }) => {
                     borderColor: 'transparent'
                 }}
             >
-                Search
+                {translate("Search")}
             </motion.button>
         </motion.form>
     );

@@ -1,14 +1,16 @@
 import { motion } from 'framer-motion';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { useLanguage } from '../lib/LanguageContext';
 import SearchBar from './SearchBar';
 
-const PageHeader = ({ greeting, userName, onSearch, showExclamation = true, showSearchBar = false }) => {
+const PageHeader = ({ greeting, userName, onSearch, showExclamation = true, showSearchBar = false, searchProps = {} }) => {
     const { colors } = useDarkMode();
+    const { translate } = useLanguage();
 
     // Determine the text to show based on props
     const headerText = userName && showExclamation
-        ? `${greeting}, ${userName}!`
-        : greeting;
+        ? `${translate(greeting)}, ${userName}!`
+        : translate(greeting);
 
     return (
         <motion.div
@@ -38,7 +40,7 @@ const PageHeader = ({ greeting, userName, onSearch, showExclamation = true, show
                 {headerText}
             </motion.h2>
 
-            {showSearchBar && <SearchBar onSearch={onSearch} />}
+            {showSearchBar && <SearchBar onSearch={onSearch} value={searchProps.value} onClear={searchProps.onClear} />}
         </motion.div>
     );
 };

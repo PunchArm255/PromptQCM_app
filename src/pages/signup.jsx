@@ -5,6 +5,7 @@ import { account, oAuthProviders, createUserProfile, uploadProfileImage, getProf
 import Logo from '../assets/icons/logo.svg';
 import LogoDark from '../assets/icons/logoDark.svg';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { useLanguage } from '../lib/LanguageContext';
 import { FcGoogle } from 'react-icons/fc';
 import { AiFillApple } from 'react-icons/ai';
 import { FiUpload, FiUser } from 'react-icons/fi';
@@ -21,6 +22,7 @@ export const SignUp = () => {
     const fileInputRef = useRef(null);
     const navigate = useNavigate();
     const { isDarkMode } = useDarkMode();
+    const { translate } = useLanguage();
 
     // Check if user is already logged in
     useEffect(() => {
@@ -131,8 +133,8 @@ export const SignUp = () => {
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#00CAC3] rounded-full opacity-10 blur-3xl"></div>
                 <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#AF42F6] rounded-full opacity-10 blur-3xl"></div>
 
-                <h1 className={`text-3xl font-bold text-center mb-2 ${isDarkMode ? 'text-white' : 'text-[#252525]'}`}>Get Started!</h1>
-                <p className={`text-center mb-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Create your account</p>
+                <h1 className={`text-3xl font-bold text-center mb-2 ${isDarkMode ? 'text-white' : 'text-[#252525]'}`}>{translate("Get Started!")}</h1>
+                <p className={`text-center mb-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{translate("Create your account")}</p>
 
                 {error && (
                     <motion.div
@@ -153,11 +155,11 @@ export const SignUp = () => {
                         className={`w-24 h-24 rounded-full overflow-hidden flex items-center justify-center cursor-pointer relative ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}
                     >
                         {profileImagePreview ? (
-                            <img src={profileImagePreview} alt="Profile Preview" className="w-full h-full object-cover" />
+                            <img src={profileImagePreview} alt={translate("Profile Preview")} className="w-full h-full object-cover" />
                         ) : (
                             <div className="flex flex-col items-center justify-center">
                                 <FiUser size={30} className={isDarkMode ? 'text-gray-400' : 'text-gray-500'} />
-                                <span className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Add photo</span>
+                                <span className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{translate("Add photo")}</span>
                             </div>
                         )}
                         <div className={`absolute bottom-0 right-0 p-1 rounded-full ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
@@ -176,7 +178,7 @@ export const SignUp = () => {
                 <form onSubmit={handleSignUp} className="space-y-5">
                     <div>
                         <label className={`block text-sm font-medium mb-1 ml-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            Full Name
+                            {translate("Full Name")}
                         </label>
                         <input
                             type="text"
@@ -184,12 +186,12 @@ export const SignUp = () => {
                             onChange={(e) => setName(e.target.value)}
                             required
                             className={`w-full py-3 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#AF42F6] focus:border-transparent transition-all ${isDarkMode ? 'bg-[#23272F] border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-200'}`}
-                            placeholder="Enter your full name"
+                            placeholder={translate("Enter your full name")}
                         />
                     </div>
                     <div>
                         <label className={`block text-sm font-medium mb-1 ml-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            Email Address
+                            {translate("Email Address")}
                         </label>
                         <input
                             type="email"
@@ -197,12 +199,12 @@ export const SignUp = () => {
                             onChange={(e) => setEmail(e.target.value)}
                             required
                             className={`w-full py-3 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#AF42F6] focus:border-transparent transition-all ${isDarkMode ? 'bg-[#23272F] border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-200'}`}
-                            placeholder="Enter your email"
+                            placeholder={translate("Enter your email")}
                         />
                     </div>
                     <div>
                         <label className={`block text-sm font-medium mb-1 ml-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            Password
+                            {translate("Password")}
                         </label>
                         <input
                             type="password"
@@ -210,7 +212,7 @@ export const SignUp = () => {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             className={`w-full py-3 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#AF42F6] focus:border-transparent transition-all ${isDarkMode ? 'bg-[#23272F] border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-200'}`}
-                            placeholder="Create a password"
+                            placeholder={translate("Create a password")}
                         />
                     </div>
                     <div className="pt-2">
@@ -224,7 +226,7 @@ export const SignUp = () => {
                                 background: "linear-gradient(to right, #00CAC3, #AF42F6)"
                             }}
                         >
-                            {isLoading ? 'Creating account...' : 'Sign Up'}
+                            {isLoading ? translate("Creating account...") : translate("Sign Up")}
                         </motion.button>
                     </div>
                 </form>
@@ -232,7 +234,7 @@ export const SignUp = () => {
                 {/* Divider */}
                 <div className="flex items-center my-6">
                     <div className={`flex-grow h-px ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
-                    <span className={`px-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>or continue with</span>
+                    <span className={`px-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{translate("or continue with")}</span>
                     <div className={`flex-grow h-px ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
                 </div>
 
@@ -268,7 +270,7 @@ export const SignUp = () => {
 
                 <div className="text-center">
                     <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        Already have an account?{' '}
+                        {translate("Already have an account?")}{' '}
                         <Link
                             to="/signin"
                             className="font-semibold"
@@ -278,7 +280,7 @@ export const SignUp = () => {
                                 WebkitTextFillColor: "transparent"
                             }}
                         >
-                            Sign In
+                            {translate("Sign In")}
                         </Link>
                     </p>
                 </div>

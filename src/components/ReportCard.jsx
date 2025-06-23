@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { useLanguage } from '../lib/LanguageContext';
 import StatCard from './StatCard';
 
 const ReportCard = ({ reportData }) => {
@@ -9,6 +10,7 @@ const ReportCard = ({ reportData }) => {
     const [activeSlide, setActiveSlide] = useState(0);
     const scrollRef = useRef(null);
     const { colors } = useDarkMode();
+    const { translate } = useLanguage();
 
     useEffect(() => {
         // Check if viewport is mobile
@@ -55,7 +57,7 @@ const ReportCard = ({ reportData }) => {
             className="rounded-2xl p-5 sm:p-6 md:p-8 flex flex-col"
         >
             <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 md:mb-10">
-                <h2 style={{ color: colors.textPrimary }} className="text-xl font-bold mb-3 md:mb-0">Total hours spent</h2>
+                <h2 style={{ color: colors.textPrimary }} className="text-xl font-bold mb-3 md:mb-0">{translate("Total hours spent")}</h2>
                 <div className="flex flex-wrap gap-2">
                     {['Last 7 days', 'Last 30 days', 'All time'].map((period, index) => (
                         <motion.button
@@ -71,7 +73,7 @@ const ReportCard = ({ reportData }) => {
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${selectedMonth === period ? "border" : ""
                                 }`}
                         >
-                            {period}
+                            {translate(period)}
                         </motion.button>
                     ))}
                 </div>

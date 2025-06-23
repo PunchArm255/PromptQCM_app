@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { useLanguage } from '../lib/LanguageContext';
 
 const ProgressModule = ({ module, index, onPractice }) => {
     const { isDarkMode, colors } = useDarkMode();
+    const { translate } = useLanguage();
 
     const cardVariants = {
         hidden: { scale: 0.95, opacity: 0 },
@@ -35,8 +37,8 @@ const ProgressModule = ({ module, index, onPractice }) => {
             className={`rounded-2xl p-3 sm:p-5 md:p-7 flex flex-col min-w-[220px] sm:min-w-[250px] md:min-w-[280px] max-w-[340px] ${index === 0 ? 'w-72 sm:w-80 md:w-96' : 'w-64 sm:w-72 md:w-80'} cursor-pointer`}
             onClick={() => onPractice && onPractice(module)}
         >
-            <h3 className="font-bold text-lg sm:text-xl mb-2 truncate">{module.name}</h3>
-            <p style={{ color: colors.textSecondary }} className="text-xs sm:text-sm mb-3 sm:mb-5 line-clamp-2">{module.description}</p>
+            <h3 className="font-bold text-lg sm:text-xl mb-2 truncate">{translate(module.name)}</h3>
+            <p style={{ color: colors.textSecondary }} className="text-xs sm:text-sm mb-3 sm:mb-5 line-clamp-2">{translate(module.description)}</p>
             <div className="mt-auto">
                 <div className="flex items-center mt-3">
                     <div

@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useDarkMode } from '../lib/DarkModeContext';
+import { useLanguage } from '../lib/LanguageContext';
 import DocumentCard from './DocumentCard';
 
 const RecentsCard = ({ documents }) => {
     const { colors } = useDarkMode();
+    const { translate } = useLanguage();
 
     const cardVariants = {
         hidden: { scale: 0.95, opacity: 0 },
@@ -43,7 +45,7 @@ const RecentsCard = ({ documents }) => {
             className="rounded-2xl p-8 flex flex-col"
         >
             <div className="flex justify-between items-center mb-8">
-                <h2 style={{ color: colors.textPrimary }} className="text-xl font-bold">Recents</h2>
+                <h2 style={{ color: colors.textPrimary }} className="text-xl font-bold">{translate("Recent")}</h2>
                 <Link to="/library">
                     <motion.div
                         whileHover={{ opacity: 0.9 }}
@@ -53,7 +55,7 @@ const RecentsCard = ({ documents }) => {
                         }}
                         className="font-semibold py-2 px-4 rounded-lg shadow-sm"
                     >
-                        View All
+                        {translate("View All")}
                     </motion.div>
                 </Link>
             </div>
@@ -64,7 +66,7 @@ const RecentsCard = ({ documents }) => {
                 className="space-y-4"
             >
                 {documents.length === 0 ? (
-                    <p style={{ color: colors.textSecondary }} className="text-center py-4">No recent documents</p>
+                    <p style={{ color: colors.textSecondary }} className="text-center py-4">{translate("No documents found")}</p>
                 ) : (
                     documents.map((doc, index) => (
                         <div key={doc.$id} onClick={() => handleDocumentClick(doc)}>
