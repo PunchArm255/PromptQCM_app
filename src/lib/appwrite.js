@@ -19,7 +19,8 @@ export const appwriteConfig = {
   timeTrackingCollectionId: "6848adfe001a163abb87",
   pdfBucketId: "6848ae770021afb8740c",
   userProfilesCollectionId: "684d0c1d00296398f1cd", // Updated collection ID
-  profileImagesBucketId: "684d0c84000edec70ed0" // Updated bucket ID
+  profileImagesBucketId: "684d0c84000edec70ed0", // Updated bucket ID
+  pdfMetadataCollectionId: "685890d6001dbee94736" // New collection for PDF metadata
 };
 
 // OAuth providers

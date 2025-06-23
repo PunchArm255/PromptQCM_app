@@ -19,14 +19,29 @@ export const uploadPDF = async (file) => {
     
     console.log("Starting PDF upload with file:", file.name);
     
-    // Simply upload the file to storage
+    // Upload the file to storage
     const fileUpload = await storage.createFile(
-      "6848ae770021afb8740c", // Hardcoded bucket ID
+      appwriteConfig.pdfBucketId,
       ID.unique(),
       file
     );
     
     console.log("File uploaded successfully:", fileUpload);
+    
+    // Create metadata document to associate PDF with user
+    await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.pdfMetadataCollectionId,
+      ID.unique(),
+      {
+        userId: user.$id,
+        fileId: fileUpload.$id,
+        fileName: file.name,
+        fileSize: file.size,
+        mimeType: file.type,
+        createdAt: new Date().toISOString()
+      }
+    );
     
     return fileUpload;
   } catch (error) {
@@ -37,14 +52,40 @@ export const uploadPDF = async (file) => {
 
 export const getUserPDFs = async () => {
   try {
-    // Simply list all files in the bucket
-    const response = await storage.listFiles(
-      "6848ae770021afb8740c" // Hardcoded bucket ID
+    const user = await getCurrentUser();
+    if (!user) throw new Error("User not authenticated");
+    
+    // Get metadata documents for the current user
+    const response = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.pdfMetadataCollectionId,
+      [Query.equal('userId', user.$id)]
     );
     
-    console.log("PDF files fetched:", response.files);
+    // Fetch file details for each metadata entry
+    const pdfFiles = [];
+    for (const doc of response.documents) {
+      try {
+        const fileDetails = await storage.getFile(
+          appwriteConfig.pdfBucketId,
+          doc.fileId
+        );
+        
+        // Combine metadata with file details
+        pdfFiles.push({
+          ...fileDetails,
+          fileName: doc.fileName,
+          metadataId: doc.$id
+        });
+      } catch (fileError) {
+        console.error(`Error fetching file ${doc.fileId}:`, fileError);
+        // Skip this file if there's an error
+      }
+    }
     
-    return response.files;
+    console.log("PDF files fetched:", pdfFiles);
+    
+    return pdfFiles;
   } catch (error) {
     console.error("Error getting PDFs:", error);
     return [];
@@ -53,13 +94,42 @@ export const getUserPDFs = async () => {
 
 export const deletePDF = async (fileId) => {
   try {
-    // Simply delete the file from storage
-    await storage.deleteFile(
-      "6848ae770021afb8740c", // Hardcoded bucket ID
-      fileId
+    const user = await getCurrentUser();
+    if (!user) throw new Error("User not authenticated");
+    
+    // Find the metadata document for this file
+    const response = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.pdfMetadataCollectionId,
+      [Query.equal('fileId', fileId)]
     );
     
-    return true;
+    // Check if metadata exists and belongs to current user
+    if (response.documents.length > 0) {
+      const metadata = response.documents[0];
+      
+      // Only allow deletion if the user owns the file
+      if (metadata.userId === user.$id) {
+        // Delete the file from storage
+        await storage.deleteFile(
+          appwriteConfig.pdfBucketId,
+          fileId
+        );
+        
+        // Delete the metadata document
+        await databases.deleteDocument(
+          appwriteConfig.databaseId,
+          appwriteConfig.pdfMetadataCollectionId,
+          metadata.$id
+        );
+        
+        return true;
+      } else {
+        throw new Error("You don't have permission to delete this file");
+      }
+    } else {
+      throw new Error("File metadata not found");
+    }
   } catch (error) {
     console.error("Error deleting PDF:", error);
     throw error;
@@ -219,13 +289,13 @@ export const updateEstablishment = async (establishmentId, data) => {
 };
 
 // QCM functions
-export const saveQCM = async (moduleId, qcmName, qcmData) => {
+export const saveQCM = async (qcmData) => {
   try {
     const user = await getCurrentUser();
     if (!user) throw new Error("User not authenticated");
     
     // Validate input
-    if (!moduleId || !qcmName || !qcmData || !qcmData.questions) {
+    if (!qcmData.moduleId || !qcmData.name || !qcmData.questions) {
       throw new Error("Missing required QCM data");
     }
     
@@ -249,8 +319,8 @@ export const saveQCM = async (moduleId, qcmName, qcmData) => {
       ID.unique(),
       {
         userId: user.$id,
-        moduleId: moduleId,
-        name: qcmName,
+        moduleId: qcmData.moduleId,
+        name: qcmData.name,
         questionText: questionText,
         questionOptions: questionOptions,
         questionAnswers: questionAnswers,
@@ -263,13 +333,13 @@ export const saveQCM = async (moduleId, qcmName, qcmData) => {
     const module = await databases.getDocument(
       appwriteConfig.databaseId,
       appwriteConfig.modulesCollectionId,
-      moduleId
+      qcmData.moduleId
     );
     
     await databases.updateDocument(
       appwriteConfig.databaseId,
       appwriteConfig.modulesCollectionId,
-      moduleId,
+      qcmData.moduleId,
       {
         qcmCount: (module.qcmCount || 0) + 1
       }

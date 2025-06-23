@@ -5,6 +5,7 @@ import { FiSettings, FiTrash2, FiX } from 'react-icons/fi';
 import PageHeader from '../components/PageHeader';
 import { useDarkMode } from '../lib/DarkModeContext';
 import { getUserPDFs, uploadPDF, deletePDF } from '../lib/appwriteService';
+import { appwriteConfig } from '../lib/appwrite';
 import DocumentCard from '../components/DocumentCard';
 
 export const Library = () => {
@@ -61,8 +62,11 @@ export const Library = () => {
     const handleDocumentClick = (doc) => {
         console.log("Opening document:", doc);
 
-        // Generate the file URL and open it
-        const url = `https://cloud.appwrite.io/v1/storage/buckets/6848ae770021afb8740c/files/${doc.$id}/view?project=67fd12b0003328d94b7d`;
+        // Use fileId from metadata if available, otherwise use $id
+        const fileId = doc.fileId || doc.$id;
+
+        // Generate the file URL using the fileId
+        const url = `https://cloud.appwrite.io/v1/storage/buckets/${appwriteConfig.pdfBucketId}/files/${fileId}/view?project=67fd12b0003328d94b7d`;
         console.log("Opening URL:", url);
         window.open(url, '_blank');
     };

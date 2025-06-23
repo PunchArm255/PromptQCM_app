@@ -4,7 +4,7 @@ import { useOutletContext, useNavigate } from 'react-router-dom';
 import { FiMoon, FiSun, FiGlobe, FiUser, FiMail, FiLock, FiLogOut, FiCheckCircle, FiBell, FiUpload } from 'react-icons/fi';
 import PageHeader from '../components/PageHeader';
 import { useDarkMode } from '../lib/DarkModeContext';
-import { account, updateUserProfile, uploadProfileImage, getProfileImageUrl, logoutUser } from '../lib/appwrite';
+import { account, updateUserProfile, createUserProfile, uploadProfileImage, getProfileImageUrl, logoutUser } from '../lib/appwrite';
 import LogoDark from '../assets/icons/logoDark.svg';
 import Logo from '../assets/icons/logo.svg';
 import Mohammed from '../assets/icons/Mohammed.png';
@@ -122,7 +122,20 @@ export const Settings = () => {
 
             // Update user profile if needed
             if (field === 'name' && user?.$id) {
-                await updateUserProfile(user.$id, { name: value });
+                try {
+                    // First try to update the profile
+                    await updateUserProfile(user.$id, { name: value });
+                } catch (profileError) {
+                    // If profile doesn't exist, create it
+                    if (profileError.message.includes('could not be found')) {
+                        await createUserProfile(user.$id, {
+                            name: value,
+                            email: user.email || ''
+                        });
+                    } else {
+                        throw profileError;
+                    }
+                }
 
                 // Refresh user data to update the sidebar with the new name
                 if (refreshUserData) {
@@ -168,9 +181,23 @@ export const Settings = () => {
 
             // Update user profile
             if (user?.$id) {
-                await updateUserProfile(user.$id, {
-                    profileImageId: uploadedFile.$id
-                });
+                try {
+                    // First try to update the profile
+                    await updateUserProfile(user.$id, {
+                        profileImageId: uploadedFile.$id
+                    });
+                } catch (profileError) {
+                    // If profile doesn't exist, create it
+                    if (profileError.message.includes('could not be found')) {
+                        await createUserProfile(user.$id, {
+                            name: user.name || 'User',
+                            email: user.email || '',
+                            profileImageId: uploadedFile.$id
+                        });
+                    } else {
+                        throw profileError;
+                    }
+                }
 
                 // Refresh user data to update the sidebar
                 if (refreshUserData) {

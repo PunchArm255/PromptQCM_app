@@ -22,8 +22,8 @@ const DocumentCard = ({ document, index, onClick, isSelected }) => {
         return date.toLocaleDateString();
     };
 
-    // Get file name from Appwrite storage file
-    const fileName = document.name || "Untitled PDF";
+    // Get file name from metadata or fallback to Appwrite storage file name
+    const fileName = document.fileName || document.name || "Untitled PDF";
 
     return (
         <motion.div

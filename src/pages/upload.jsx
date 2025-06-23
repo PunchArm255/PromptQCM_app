@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
-import { FiUpload, FiFileText, FiCheck, FiAlertCircle, FiLoader } from 'react-icons/fi';
+import { FiUpload, FiFileText, FiCheck, FiAlertCircle, FiLoader, FiCheckCircle } from 'react-icons/fi';
 import { useDarkMode } from '../lib/DarkModeContext';
 import Logo from '../assets/icons/logo.svg';
 import LogoDark from '../assets/icons/logoDark.svg';
