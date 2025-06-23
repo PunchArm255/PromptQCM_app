@@ -65,7 +65,7 @@ export const Generate = () => {
     const { user } = useOutletContext() || {};
     const { isDarkMode, colors } = useDarkMode();
     const [messages, setMessages] = useState([
-        { sender: 'ai', text: 'Hi! Tell me what kind of QCM you want to generate. For example: "' + examplePrompt + '"' }
+        { sender: 'ai', text: 'Hi there! How can I help you today?"' }
     ]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
