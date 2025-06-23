@@ -593,12 +593,6 @@ export const Settings = () => {
                                     alt="PromptQCM"
                                     className="h-24 mb-4"
                                 />
-                                <h2
-                                    style={{ color: colors.textPrimary }}
-                                    className="text-2xl font-bold mb-2"
-                                >
-                                    PromptQCM
-                                </h2>
                                 <p
                                     style={{ color: colors.textSecondary }}
                                     className="text-sm mb-8"
@@ -695,7 +689,7 @@ export const Settings = () => {
                                     style={{ color: colors.textSecondary }}
                                     className="text-sm mt-8"
                                 >
-                                    © 2023 PromptQCM. All rights reserved.
+                                    © 2025 PromptQCM. All rights reserved.
                                 </p>
                             </div>
                         )}
