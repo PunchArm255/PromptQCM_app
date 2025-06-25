@@ -1,6 +1,6 @@
 ![banir](https://github.com/user-attachments/assets/8074a650-2996-471f-a375-653095052613)
 
-# PromptQCM – AI-Powered MCQ Generator for Education 📚🤖
+# PromptQCM – AI-Powered MCQ Generator for Education 🤖
 
 PromptQCM is an intelligent web platform that automatically generates educational multiple-choice questionnaires (MCQs) from imported learning materials. Designed primarily for university students but also useful for educators, it combines modern web technologies with AI to revolutionize exam preparation and assessment creation.
 
@@ -108,10 +108,10 @@ src/
 ![image 12](https://github.com/user-attachments/assets/d6727921-16b4-4c65-8ca2-524c37f60cb2)
 
 ### Modules (Modules.jsx)
-![Group 1171275278](https://github.com/user-attachments/assets/f0eda0c6-4262-44bf-b06e-668ee969d268)
+![image-3](https://github.com/user-attachments/assets/7ea6df26-8a6e-465f-bf2b-bda38bd296d9)
 
 ### Reports (Report.jsx)
-![image-3](https://github.com/user-attachments/assets/7ea6df26-8a6e-465f-bf2b-bda38bd296d9)
+![image-4](https://github.com/user-attachments/assets/77f63662-ee8f-4a3c-847f-72b6e74dead0)
 
 ### Mobile Mode
 ![Group 1171275278](https://github.com/user-attachments/assets/a4083ad9-199e-4f2b-b07c-71b70f6e20ab)
