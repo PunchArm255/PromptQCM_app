@@ -46,7 +46,9 @@ function parseOpenRouterQCMResponse(text) {
             if (optMatch) {
                 options.push(optMatch[1]);
             } else if (/^Answer[:：]?/i.test(lines[i])) {
-                answer = lines[i].replace(/^Answer[:：]?\s*/i, '');
+                // Extract only the first letter A-D (case-insensitive)
+                const match = lines[i].match(/^Answer[:：]?\s*([A-D])/i);
+                answer = match ? match[1].toUpperCase() : '';
             }
         }
         if (questionLine && options.length >= 2) {
@@ -217,7 +219,7 @@ export const Generate = () => {
 
                 // Add question
                 doc.setFont('helvetica', 'bold');
-                doc.text(`${qIndex + 1}. ${q.question}`, 14, yPos);
+                doc.text(`${qIndex + 1}. ${q.question.replace(/^\d+\.\s*/, '')}`, 14, yPos);
                 yPos += 8;
 
                 // Add code block if present
@@ -528,7 +530,7 @@ export const Generate = () => {
                                                 className="text-lg font-medium mb-2"
                                                 style={{ color: colors.textPrimary }}
                                             >
-                                                {qIndex + 1}. {q.question}
+                                                {qIndex + 1}. {q.question.replace(/^\d+\.\s*/, '')}
                                             </h3>
 
                                             {q.code && (
