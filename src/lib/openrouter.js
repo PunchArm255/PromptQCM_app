@@ -25,9 +25,7 @@ If the user requests code snippets, include them in Markdown code blocks (triple
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "meta-llama/llama-3.3-8b-instruct:free",
-      max_tokens: 2048,
-      temperature: 0.8,
+      model: "meta-llama/llama-3.1-8b-instruct:free",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
