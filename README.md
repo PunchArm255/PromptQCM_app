@@ -98,7 +98,7 @@ src/
 ```
 
 > **Last updated**: June 2025  
-> **Current Version**: Prototype v0.1
+> **Current Version**: Beta Release v1.0.0
 
 ---
 

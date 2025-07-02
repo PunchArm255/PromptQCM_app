@@ -592,7 +592,7 @@ export const Settings = () => {
                                     style={{ color: colors.textSecondary }}
                                     className="text-sm mb-8"
                                 >
-                                    {translate("Pre-Release v0.9")}
+                                    {translate("Beta Release v1.0.0")}
                                 </p>
 
                                 <h3
