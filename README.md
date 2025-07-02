@@ -123,7 +123,7 @@ src/
 
 ## 🎬 Demo & Presentation
 
-Coming soon!
+[Demo](https://youtu.be/QhXh11VVj70)
 
 ---
 
